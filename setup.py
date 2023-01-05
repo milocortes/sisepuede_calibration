@@ -17,7 +17,8 @@ setup(
     install_requires=[
         "scipy>=1.7.3",
         "pandas>=1.5.2",
-        "SQLAlchemy>=1.4.46"
+        "SQLAlchemy>=1.4.46",
+        "julia==0.6.0"
     ],
     packages=find_packages(exclude=("tests",)),
     classifiers=[
