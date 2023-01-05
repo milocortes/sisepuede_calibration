@@ -16,7 +16,7 @@ import os
 
 cwd = os.environ['LAC_PATH']
 
-sys.path.append(os.path.join(cwd, 'lac_decarbonization', 'python'))
+sys.path.append(os.path.join(cwd, 'python'))
 
 import setup_analysis as sa
 import support_functions as sf

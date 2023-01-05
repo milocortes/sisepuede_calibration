@@ -8,7 +8,7 @@ import sys
 import os
 
 cwd = os.environ['LAC_PATH']
-sys.path.append(os.path.join(cwd, 'lac_decarbonization', 'python'))
+sys.path.append(os.path.join(cwd, 'python'))
 
 from data_functions_mix_lndu_transitions_from_inferred_bounds import MixedLNDUTransitionFromBounds
 
