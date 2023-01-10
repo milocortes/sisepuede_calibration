@@ -665,3 +665,63 @@ class CalibrationModel(RunModel):
             print(" Cross Validation: {} on Node {}. MSE Training : {}".format(self.cv_run ,self.id_mpi,mejor_valor))
             mse_test = self.get_mse_test(self.best_vector[self.subsector_model])
             print(" Cross Validation: {} on Node {}. MSE Test : {}".format(self.cv_run ,self.id_mpi,mse_test))
+
+
+class TestFakeData:
+    '''
+    ------------------------------------------
+
+    TestFakeData class
+
+    -------------------------------------------
+    '''
+
+    # *****************************
+    # ***********  AFOLU **********
+    # *****************************
+    @staticmethod
+    @get_output_fake_data_AFOLU_dec
+    def get_output_fake_data_AFOLU(df_input_data, run_integrated_q = False):
+        pass
+
+    # *****************************
+    # *****  CircularEconomy ******
+    # *****************************
+    @staticmethod
+    @get_output_fake_data_CircularEconomy_dec
+    def get_output_fake_data_CircularEconomy(df_input_data, run_integrated_q = False):
+        pass
+
+    # *****************************
+    # ***********  IPPU ***********
+    # *****************************
+    @staticmethod
+    @get_output_fake_data_IPPU_dec
+    def get_output_fake_data_IPPU(df_input_data, run_integrated_q = True):
+        pass
+
+    # *****************************
+    # *****  NonElectricEnergy ****
+    # *****************************
+    @staticmethod
+    @get_output_fake_data_NonElectricEnergy_dec
+    def get_output_fake_data_NonElectricEnergy(df_input_data, run_integrated_q = True):
+        pass
+
+    # *****************************
+    # *****  ElectricEnergy *******
+    # *****************************
+    @staticmethod
+    @get_output_fake_data_ElectricEnergy_dec
+    def get_output_fake_data_ElectricEnergy(df_input_data, run_integrated_q = True):
+        pass
+
+
+    # *****************************************************
+    # **** Fugitive emissions from Non-Electric Energy ****
+    # *****************************************************
+    @staticmethod
+    @get_output_fake_data_FugitiveNonElectricEnergy_dec
+    def get_output_fake_data_FugitiveNonElectricEnergy(df_input_data, run_integrated_q = True):
+        pass
+        
