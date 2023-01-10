@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore")
+
 import functools
 import numpy as np
 import pandas as pd
@@ -68,9 +71,11 @@ def get_output_fake_data_CircularEconomy_dec(func):
             if run_integrated_q:
                 df_output_data = []
                 print("\n\tRunning AFOLU")
+                # get the model, run it using the input data, then update the output data (for integration)
                 model_afolu = sm.AFOLU(sa.model_attributes)
                 df_output_data.append(model_afolu.project(df_input_data))
 
+                print("\n\tRunning CircularEconomy")
                 model_circecon = sm.CircularEconomy(sa.model_attributes)
 
                 df_input_data = sa.model_attributes.transfer_df_variables(
@@ -78,6 +83,8 @@ def get_output_fake_data_CircularEconomy_dec(func):
                     df_output_data[0],
                     model_circecon.integration_variables
                 )
+
+                df_output_data.append(model_circecon.project(df_input_data))
 
                 df_output_data = [sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")] 
 
@@ -113,6 +120,8 @@ def get_output_fake_data_IPPU_dec(func):
                     df_output_data[0],
                     model_circecon.integration_variables
                 )
+
+                df_output_data.append(model_circecon.project(df_input_data))
 
                 df_output_data = [sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")] 
 
@@ -161,6 +170,8 @@ def get_output_fake_data_NonElectricEnergy_dec(func):
                     df_output_data[0],
                     model_circecon.integration_variables
                 )
+
+                df_output_data.append(model_circecon.project(df_input_data))
 
                 df_output_data = [sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")] 
 
@@ -221,6 +232,8 @@ def get_output_fake_data_ElectricEnergy_dec(func):
                     df_output_data[0],
                     model_circecon.integration_variables
                 )
+
+                df_output_data.append(model_circecon.project(df_input_data))
 
                 df_output_data = [sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")] 
 
@@ -301,6 +314,8 @@ def get_output_fake_data_FugitiveNonElectricEnergy_dec(func):
                     df_output_data[0],
                     model_circecon.integration_variables
                 )
+
+                df_output_data.append(model_circecon.project(df_input_data))
 
                 df_output_data = [sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")] 
 
