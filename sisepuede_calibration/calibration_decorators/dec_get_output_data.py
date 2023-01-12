@@ -2,8 +2,24 @@ import functools
 import numpy as np
 import pandas as pd
 import math
+import sqlalchemy
 
+# Load LAC-Decarbonization source
+import sys
+import os
 
+cwd = os.environ['LAC_PATH']
+sys.path.append(os.path.join(cwd, 'python'))
+
+import setup_analysis as sa
+import support_functions as sf
+import sector_models as sm
+import argparse
+
+from model_socioeconomic import Socioeconomic
+from model_afolu import AFOLU
+from model_circular_economy import CircularEconomy
+from model_ippu import IPPU
 
 """
 ***********************************************************
@@ -26,29 +42,19 @@ import math
 
 def get_output_data_AFOLU(func):
     @functools.wraps(func)
-    def wrapper_decorator(calibration,df_model_data_project):
-        item_val_afolu = {}
-        item_val_afolu_total_item_fao = {}
-        item_val_afolu_total_item_fao_observado = {}
+    def wrapper_decorator(calibration, params, print_sector_model = False):
+        # Copy original input data
+        df_input_data = calibration.df_input_var.copy()
 
-        item_val_afolu_percent_diff = {}
+        # RUN AFOLU SECTOR
+        if print_sector_model:
+            print("RUN AFOLU SECTOR")
+        # Build input data for AFOLU sector
+        df_input_data = calibration.build_data_AFOLU(df_input_data, params)
+        model_afolu = AFOLU(sa.model_attributes)
+        df_model_data_project = model_afolu.project(df_input_data)        
 
-        acumula_total = (calibration.df_co2_emissions.groupby(["Area_Code","Year"]).sum().reset_index(drop=True).Value/1000).to_numpy()
-
-        for item, vars in calibration.var_co2_emissions_by_sector[calibration.subsector_model].items():
-            if vars:
-                item_val_afolu_total_item_fao[item] = df_model_data_project[vars].sum(1)  
-                item_val_afolu_total_item_fao_observado[item] = (calibration.df_co2_emissions.query("Item_Code=={}".format(item)).drop_duplicates(subset='Year', keep="first").reset_index().Value)/1000
-                item_val_afolu[item] = (item_val_afolu_total_item_fao[item] - item_val_afolu_total_item_fao_observado[item])**2
-                #item_val_afolu_percent_diff[item] = (df_model_data_project[vars].sum(1) / ((calibration.df_co2_emissions.query("Item_Code=={}".format(item)).drop_duplicates(subset='Year', keep="first").reset_index().Value)/1000))*100
-                item_val_afolu_percent_diff[item] = ((item_val_afolu_total_item_fao[item] - item_val_afolu_total_item_fao_observado[item])/item_val_afolu_total_item_fao_observado[item])*100
-
-        co2_df = pd.DataFrame(item_val_afolu)
-        co2_df_percent_diff = pd.DataFrame(item_val_afolu_percent_diff)
-        calibration.percent_diff = co2_df_percent_diff
-        calibration.error_by_item = co2_df
-        calibration.item_val_afolu_total_item_fao = item_val_afolu_total_item_fao
-        co2_df_total = co2_df.sum(1)
+        return df_model_data_project
     return wrapper_decorator
 
 
@@ -58,6 +64,306 @@ def get_output_data_AFOLU(func):
 
 def get_output_data_CircularEconomy(func):
     @functools.wraps(func)
-    def wrapper_decorator(calibration,df_model_data_project):
-        print("get_output_data_CircularEconomy")
+    def wrapper_decorator(calibration, params, print_sector_model = False):
+
+        # Copy original input data
+        df_input_data = calibration.df_input_var.copy()       
+
+        if calibration.run_integrated_q:
+            # RUN AFOLU SECTOR
+            if print_sector_model:
+                print("RUN AFOLU SECTOR")
+
+            df_output_data = []
+            df_input_data = calibration.build_data_AFOLU(df_input_data, calibration.best_vector["AFOLU"])
+            model_afolu = AFOLU(sa.model_attributes)
+            df_output_data.append(model_afolu.project(df_input_data))
+
+            # RUN CircularEconomy SECTOR
+            if print_sector_model:
+                print("RUN CircularEconomy SECTOR")
+
+            model_circecon = sm.CircularEconomy(sa.model_attributes)
+
+            df_input_data = sa.model_attributes.transfer_df_variables(
+                df_input_data,
+                df_output_data[0],
+                model_circecon.integration_variables
+            )
+
+            df_input_data = calibration.build_data_CircularEconomy(df_input_data, params)
+
+            df_output_data.append(model_circecon.project(df_input_data))
+
+            df_output_data = [sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")] 
+
+            # Build output data frame
+            df_model_data_project = sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")
+
+        else:
+            # RUN CircularEconomy
+            if print_sector_model:
+                print("RUN CircularEconomy SECTOR")
+
+            df_input_data = calibration.build_data_CircularEconomy(df_input_data, params)
+            model_circular_economy = CircularEconomy(sa.model_attributes)
+            df_model_data_project = model_circular_economy.project(df_input_data)
+
+
+        return df_model_data_project
+    return wrapper_decorator
+
+
+# *****************************
+# **********  IPPU ************
+# *****************************
+
+def get_output_data_IPPU(func):
+    @functools.wraps(func)
+    def wrapper_decorator(calibration, params, print_sector_model = False):
+        
+        # Copy original input data
+        df_input_data = calibration.df_input_var.copy()       
+
+        if calibration.run_integrated_q:
+
+             # RUN AFOLU SECTOR
+            if print_sector_model:
+                print("RUN AFOLU SECTOR")
+            
+            df_output_data = []
+            df_input_data = calibration.build_data_AFOLU(df_input_data, calibration.best_vector["AFOLU"])
+            model_afolu = AFOLU(sa.model_attributes)
+            df_output_data.append(model_afolu.project(df_input_data))
+
+            # RUN CircularEconomy SECTOR
+            if print_sector_model:
+                print("RUN CircularEconomy SECTOR")
+            
+            model_circecon = sm.CircularEconomy(sa.model_attributes)
+
+            df_input_data = sa.model_attributes.transfer_df_variables(
+                df_input_data,
+                df_output_data[0],
+                model_circecon.integration_variables
+            )
+
+            df_input_data = calibration.build_data_CircularEconomy(df_input_data, calibration.best_vector["CircularEconomy"])
+
+            df_output_data.append(model_circecon.project(df_input_data))
+
+            df_output_data = [sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")] 
+
+
+            # RUN IPPU SECTOR
+            if print_sector_model:
+                print("RUN IPPU SECTOR")
+            
+            model_ippu = sm.IPPU(sa.model_attributes)
+
+            df_input_data = sa.model_attributes.transfer_df_variables(
+                df_input_data,
+                df_output_data[0],
+                model_ippu.integration_variables
+            )
+
+            df_input_data = calibration.build_data_IPPU(df_input_data, params)
+
+            df_output_data.append(model_ippu.project(df_input_data))
+            df_output_data = [sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")] 
+    
+            # Build output data frame
+            df_model_data_project = sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")
+
+           
+        else:
+        
+            # RUN IPPU
+            if print_sector_model:
+                print("RUN IPPU SECTOR")
+
+            df_input_data = calibration.build_data_IPPU(df_input_data, params)
+            model_ippu = IPPU(sa.model_attributes)
+            df_model_data_project = model_ippu.project(df_input_data) 
+
+
+        return df_model_data_project
+    return wrapper_decorator
+
+# *****************************
+# ***** NonElectricEnergy *****
+# *****************************
+
+def get_output_data_NonElectricEnergy(func):
+    @functools.wraps(func)
+    def wrapper_decorator(calibration, params, print_sector_model = False):
+        
+        # Copy original input data
+        df_input_data = calibration.df_input_var.copy()        
+        
+        # RUN AFOLU SECTOR
+        if print_sector_model:
+            print("RUN AFOLU SECTOR")
+        
+        df_output_data = []
+        df_input_data = calibration.build_data_AFOLU(df_input_data, calibration.best_vector["AFOLU"])
+        model_afolu = AFOLU(sa.model_attributes)
+        df_output_data.append(model_afolu.project(df_input_data))
+
+        # RUN CircularEconomy SECTOR
+        if print_sector_model:
+            print("RUN CircularEconomy SECTOR")
+        
+        model_circecon = sm.CircularEconomy(sa.model_attributes)
+
+        df_input_data = sa.model_attributes.transfer_df_variables(
+            df_input_data,
+            df_output_data[0],
+            model_circecon.integration_variables
+        )
+
+        df_input_data = calibration.build_data_CircularEconomy(df_input_data, calibration.best_vector["CircularEconomy"])
+
+        df_output_data.append(model_circecon.project(df_input_data))
+
+        df_output_data = [sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")] 
+
+
+        # RUN IPPU SECTOR
+        if print_sector_model:
+            print("RUN IPPU SECTOR")
+        
+        model_ippu = sm.IPPU(sa.model_attributes)
+
+        df_input_data = sa.model_attributes.transfer_df_variables(
+            df_input_data,
+            df_output_data[0],
+            model_ippu.integration_variables
+        )
+
+        df_input_data = calibration.build_data_IPPU(df_input_data, calibration.best_vector["IPPU"])
+
+        df_output_data.append(model_ippu.project(df_input_data))
+        df_output_data = [sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")] 
+
+
+        # RUN NonElectricEnergy SECTOR
+        if print_sector_model:
+            print("RUN NonElectricEnergy SECTOR") 
+        
+        model_energy = sm.NonElectricEnergy(sa.model_attributes)
+
+        df_input_data = sa.model_attributes.transfer_df_variables(
+            df_input_data,
+            df_output_data[0],
+            model_energy.integration_variables_non_fgtv
+        )
+
+        df_output_data.append(model_energy.project(df_input_data))
+        df_output_data = [sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")]
+
+        # Build output data frame
+        df_model_data_project = sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")
+
+        return df_model_data_project
+    return wrapper_decorator
+
+# *****************************
+# ******* ElectricEnergy ******
+# *****************************
+
+def get_output_data_ElectricEnergy(func):
+    @functools.wraps(func)
+    def wrapper_decorator(calibration, params, print_sector_model):
+
+        # Copy original input data
+        df_input_data = calibration.df_input_var.copy()        
+
+        # RUN AFOLU SECTOR
+        if print_sector_model:
+            print("RUN AFOLU SECTOR")
+        
+        df_output_data = []
+        df_input_data = calibration.build_data_AFOLU(df_input_data, calibration.best_vector["AFOLU"])
+        model_afolu = AFOLU(sa.model_attributes)
+        df_output_data.append(model_afolu.project(df_input_data))
+
+        # RUN CircularEconomy SECTOR
+        if print_sector_model:
+            print("RUN CircularEconomy SECTOR")
+        
+        model_circecon = sm.CircularEconomy(sa.model_attributes)
+
+        df_input_data = sa.model_attributes.transfer_df_variables(
+            df_input_data,
+            df_output_data[0],
+            model_circecon.integration_variables
+        )
+
+        df_input_data = calibration.build_data_CircularEconomy(df_input_data, calibration.best_vector["CircularEconomy"])
+
+        df_output_data.append(model_circecon.project(df_input_data))
+
+        df_output_data = [sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")] 
+
+
+        # RUN IPPU SECTOR
+        if print_sector_model:
+            print("RUN IPPU SECTOR")
+        
+        model_ippu = sm.IPPU(sa.model_attributes)
+
+        df_input_data = sa.model_attributes.transfer_df_variables(
+            df_input_data,
+            df_output_data[0],
+            model_ippu.integration_variables
+        )
+
+        df_input_data = calibration.build_data_IPPU(df_input_data, calibration.best_vector["IPPU"])
+
+        df_output_data.append(model_ippu.project(df_input_data))
+        df_output_data = [sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")] 
+
+
+        # RUN NonElectricEnergy SECTOR
+        if print_sector_model:
+            print("RUN NonElectricEnergy SECTOR") 
+        
+        model_energy = sm.NonElectricEnergy(sa.model_attributes)
+
+        df_input_data = sa.model_attributes.transfer_df_variables(
+            df_input_data,
+            df_output_data[0],
+            model_energy.integration_variables_non_fgtv
+        )
+
+        df_output_data.append(model_energy.project(df_input_data))
+        df_output_data = [sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")]
+
+        # RUN ElectricEnergy SECTOR
+        if print_sector_model:
+            print("RUN ElectricEnergy SECTOR") 
+
+        model_elecricity = sm.ElectricEnergy(sa.model_attributes, 
+                                            sa.dir_jl, 
+                                            sa.dir_ref_nemo)
+
+
+        df_input_data = sa.model_attributes.transfer_df_variables(
+            df_input_data,
+            df_output_data[0],
+            model_elecricity.integration_variables
+        )
+
+        # create the engine
+        engine = sqlalchemy.create_engine(f"sqlite:///{sa.fp_sqlite_nemomod_db_tmp}")
+
+        df_elec = model_elecricity.project(df_input_data, engine)
+        df_output_data.append(df_elec)
+        df_output_data = [sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")]
+
+        # Build output data frame
+        df_model_data_project = sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")
+
+        return df_model_data_project
     return wrapper_decorator

@@ -84,9 +84,29 @@ def performance_test_CircularEconomy(func):
     @functools.wraps(func)
     def wrapper_decorator(calibration,df_model_data_project):
 
-        subsectors = ['emission_co2e_subsector_total_wali','emission_co2e_subsector_total_waso', 'emission_co2e_subsector_total_trww']
+        co2_df_total = np.array(df_model_data_project[calibration.var_co2_emissions_by_sector["CircularEconomy"]].sum(1))
+        co2_historical = np.array(calibration.df_co2_emissions["value"].tolist())*(1/1000)
 
-        co2_df_total = np.array(df_model_data_project[subsectors].sum(1))
+        if calibration.cv_calibration:
+
+            output = np.mean([(co2_df_total[i] - co2_historical[i])**2 for i in calibration.cv_training])
+            
+        else:
+            output = np.mean(np.mean(( co2_df_total - co2_historical )**2))
+
+        return output
+    return wrapper_decorator
+
+
+# *****************************
+# ***********  IPPU ***********
+# *****************************
+
+def performance_test_IPPU(func):
+    @functools.wraps(func)
+    def wrapper_decorator(calibration,df_model_data_project):
+
+        co2_df_total = np.array(df_model_data_project[calibration.var_co2_emissions_by_sector["IPPU"]].sum(1))
         co2_historical = np.array(calibration.df_co2_emissions["value"].tolist())*(1/1000)
 
         if calibration.cv_calibration:

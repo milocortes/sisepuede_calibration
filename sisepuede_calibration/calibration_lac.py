@@ -97,29 +97,42 @@ class RunModel:
     # +++++++++++++++++++++++++++++++++++++++
 
     @data_matrix_pij_AFOLU
-    def build_data_AFOLU(self, params):
+    def build_data_AFOLU(self, df_input_data, params):
         pass
 
     @data_CircularEconomy
-    def build_data_CircularEconomy(self, params):
+    def build_data_CircularEconomy(self, df_input_data, params):
         pass
 
-    @data_CircularEconomy_all_period
-    def build_data_CircularEconomy_all_period(self, params):
+
+    @data_IPPU
+    def build_data_IPPU(self, df_input_data, params):
         pass
+
 
     # +++++++++++++++++++++++++++++++++++++++
     # Set decorators for get output data by sector
     # +++++++++++++++++++++++++++++++++++++++
 
     @get_output_data_AFOLU
-    def build_get_output_data_AFOLU(self, df_model_data_project):
+    def build_get_output_data_AFOLU(self, params, print_sector_model = False):
         pass
 
     @get_output_data_CircularEconomy
-    def build_get_output_data_CircularEconomy(self, df_model_data_project):
+    def build_get_output_data_CircularEconomy(self, params, print_sector_model = False):
         pass
 
+    @get_output_data_IPPU
+    def build_get_output_data_IPPU(self, params, print_sector_model = False):
+        pass
+
+    @get_output_data_NonElectricEnergy
+    def build_get_output_data_NonElectricEnergy(self, params, print_sector_model = False):
+        pass
+
+    @get_output_data_ElectricEnergy
+    def build_get_output_data_ElectricEnergy(self, params, print_sector_model = False):
+        pass
 
     """
     ---------------------------------
@@ -136,110 +149,26 @@ class RunModel:
              * df_model_data_project    - output data of specific subsector model
     """
 
-    def get_output_data(self, params):
-
-
+    def get_output_data(self, params, print_sector_model = False):
+    
         if self.subsector_model == "AFOLU":
-            #print("\n\tAFOLU")
-            df_input_data = self.build_data_AFOLU(params)
-            model_afolu = AFOLU(sa.model_attributes)
-            df_model_data_project = model_afolu.project(df_input_data)
-            self.build_get_output_data_AFOLU(df_model_data_project)
-            
+            df_model_data_project = self.build_get_output_data_AFOLU(params, print_sector_model)
+
         if self.subsector_model == "CircularEconomy":
-            #print("\n\tRunning CircularEconomy")
-            df_input_data = self.build_data_CircularEconomy(params)
-            model_circular_economy = CircularEconomy(sa.model_attributes)
-            df_model_data_project = model_circular_economy.project(df_input_data)
+            df_model_data_project = self.build_get_output_data_CircularEconomy(params, print_sector_model)
 
         if self.subsector_model == "IPPU":
-            if not self.downstream:
-                #print("\n\tRunning IPPU")
-                model_ippu = IPPU(sa.model_attributes)
-                df_model_data_project = model_ippu.project(df_input_data)
-            else:
-                # First run CircularEconomy model
-                model_circular_economy = CircularEconomy(sa.model_attributes)
-                df_input_data = self.df_input_var.copy()
-                df_input_data[self.calib_targets["CircularEconomy"]] = df_input_data[self.calib_targets["CircularEconomy"]] * self.best_vector["CircularEconomy"]
-                output_circular_economy = model_circular_economy.project(df_input_data)
+            df_model_data_project = self.build_get_output_data_IPPU(params, print_sector_model)
 
-                # Build the new df_input_data with the output of CircularEconomy model
-                model_ippu = IPPU(sa.model_attributes)
-
-                df_input_data = sa.model_attributes.transfer_df_variables(
-                                df_input_data,
-                                output_circular_economy,
-                                model_ippu.integration_variables
-                            )
-                # Run IPPU model
-                df_input_data[var_no_change_over_time] = df_input_data[var_no_change_over_time].mean()*np.array(params)[index_var_no_change_over_time]
-
-                if list(var_change_over_time):
-                    df_input_data[var_change_over_time] = df_input_data[var_change_over_time]*np.array(params)[index_var_change_over_time]
-
-                df_model_data_project = model_ippu.project(df_input_data)
+        if self.subsector_model == "NonElectricEnergy":
+            df_model_data_project = self.build_get_output_data_NonElectricEnergy(params, print_sector_model)
 
         if self.subsector_model == "ElectricEnergy":
-            model_afolu = sm.AFOLU(sa.model_attributes)
-            df_output_data = model_afolu.project(df_input_data)
+            df_model_data_project = self.build_get_output_data_ElectricEnergy(params, print_sector_model)
 
-
-            model_ippu = sm.IPPU(sa.model_attributes)
-
-            df_input_data = sa.model_attributes.transfer_df_variables(
-                df_input_data,
-                df_output_data,
-                model_ippu.integration_variables
-            )
-
-            df_ippu_out = model_ippu.project(df_input_data)
-
-            df_output_data = pd.merge(df_ippu_out, df_output_data)
-
-            model_energy = sm.NonElectricEnergy(sa.model_attributes)
-
-            df_input_data = sa.model_attributes.transfer_df_variables(
-                df_input_data,
-                df_output_data,
-                model_energy.integration_variables_non_fgtv
-            )
-                        
-            df_output_data = model_energy.project(df_input_data)
-                        
 
         return df_model_data_project
 
-    """
-    ---------------------------------
-    build_calibrated_data method
-    ---------------------------------
-
-    Description: The method recive params and build the calibrated
-                 data of specific subsector model.
-
-    # Inputs:
-             * params                   - calibration vector
-             * df_input_data            - fake data complete
-
-    # Output:
-             * df_calibrated_data       - calibrated data
-    """
-
-    def get_output_data_from_df_input_data(self, df_input_data):
-
-        if self.subsector_model == "AFOLU":
-            #print("\n\tAFOLU")
-            model_afolu = AFOLU(sa.model_attributes)
-            df_model_data_project = model_afolu.project(df_input_data)
-            
-        if self.subsector_model == "CircularEconomy":
-            #print("\n\tRunning CircularEconomy")
-            model_circular_economy = CircularEconomy(sa.model_attributes)
-            df_model_data_project = model_circular_economy.project(df_input_data)
-
-                        
-        return df_model_data_project
 
 
 class CalibrationModel(RunModel):
@@ -271,7 +200,7 @@ class CalibrationModel(RunModel):
     '''
 
     def __init__(self,  year_init, year_end, df_input_var, country, subsector_model, calib_targets, df_calib_bounds, all_time_period_input_data,
-                 df_co2_emissions, co2_emissions_by_sector = {}, cv_calibration = False, cv_training = [], cv_test = [], cv_run = 0, id_mpi = 0,downstream = False,weight_co2_flag = False, weight_co2 = [],precition = 6):
+                 df_co2_emissions, co2_emissions_by_sector = {}, cv_calibration = False, cv_training = [], cv_test = [], cv_run = 0, id_mpi = 0,downstream = False,weight_co2_flag = False, weight_co2 = [],precition = 6, run_integrated_q = False):
         super(CalibrationModel, self).__init__(year_init, year_end, df_input_var, country, subsector_model, calib_targets,df_calib_bounds,all_time_period_input_data,downstream = False)
         self.df_co2_emissions = df_co2_emissions
         self.cv_calibration = cv_calibration
@@ -287,6 +216,7 @@ class CalibrationModel(RunModel):
         self.weight_co2 = np.array(weight_co2)
         self.item_val_afolu_total_item_fao = None
         self.precition = precition
+        self.run_integrated_q = run_integrated_q
 
     def get_calib_var_group(self,grupo): 
         return self.df_calib_bounds.query("group =={}".format(grupo))["variable"].to_list()
@@ -303,6 +233,10 @@ class CalibrationModel(RunModel):
     def build_performance_CircularEconomy(self, df_model_data_project):
         pass
 
+    @performance_IPPU
+    def build_performance_IPPU(self, df_model_data_project):
+        pass
+
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     # Set decorators for performance metrics in test set by sector
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -313,6 +247,42 @@ class CalibrationModel(RunModel):
 
     @performance_test_CircularEconomy
     def build_performance_test_CircularEconomy(self, df_model_data_project):
+        pass
+
+    @performance_test_IPPU
+    def build_performance_test_IPPU(self, df_model_data_project):
+        pass
+
+    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # Set decorators for function evaluation by sector
+    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @dec_func_eval_AFOLU
+    def func_eval_AFOLU(self, params):
+        pass
+
+    @dec_func_eval_CircularEconomy
+    def func_eval_CircularEconomy(self, params):
+        pass
+
+    @dec_func_eval_IPPU
+    def func_eval_IPPU(self, params):
+        pass
+
+    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # Set decorators for function evaluation on test set by sector
+    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @dec_func_eval_test_AFOLU
+    def func_eval_test_AFOLU(self, params):
+        pass
+
+    @dec_func_eval_test_CircularEconomy
+    def func_eval_test_CircularEconomy(self, params):
+        pass
+
+    @dec_func_eval_test_IPPU
+    def func_eval_test_IPPU(self, params):
         pass
 
     """
@@ -333,76 +303,28 @@ class CalibrationModel(RunModel):
     def objective_a(self, params):
 
         if self.subsector_model == "AFOLU":
-            #print("\n\tAFOLU")
-            df_input_data = self.build_data_AFOLU(params)
-            model_afolu = AFOLU(sa.model_attributes)
-            df_model_data_project = model_afolu.project(df_input_data)
-            output = self.build_performance_AFOLU(df_model_data_project)
+            
+            # Get algo
+            output = self.func_eval_AFOLU(params)
+        
         if self.subsector_model == "CircularEconomy":
-            #print("\n\tRunning CircularEconomy")
-            df_input_data = self.build_data_CircularEconomy(params)
-            model_circular_economy = CircularEconomy(sa.model_attributes)
-            df_model_data_project = model_circular_economy.project(df_input_data)
-            output = self.build_performance_CircularEconomy(df_model_data_project)
-
+            # Get algo
+            output = self.func_eval_CircularEconomy(params)
+        
         if self.subsector_model == "IPPU":
-            if not self.downstream:
-                #print("\n\tRunning IPPU")
-                model_ippu = IPPU(sa.model_attributes)
-                df_model_data_project = model_ippu.project(df_input_data)
-            else:
-                # First run CircularEconomy model
-                model_circular_economy = CircularEconomy(sa.model_attributes)
-                df_input_data = self.df_input_var.copy()
-                df_input_data[self.calib_targets["CircularEconomy"]] = df_input_data[self.calib_targets["CircularEconomy"]] * self.best_vector["CircularEconomy"]
-                output_circular_economy = model_circular_economy.project(df_input_data)
-
-                # Build the new df_input_data with the output of CircularEconomy model
-                model_ippu = IPPU(sa.model_attributes)
-
-                df_input_data = sa.model_attributes.transfer_df_variables(
-                                df_input_data,
-                                output_circular_economy,
-                                model_ippu.integration_variables
-                            )
-                # Run IPPU model
-                df_input_data[var_no_change_over_time] = df_input_data[var_no_change_over_time].mean()*np.array(params)[index_var_no_change_over_time]
-
-                if list(var_change_over_time):
-                    df_input_data[var_change_over_time] = df_input_data[var_change_over_time]*np.array(params)[index_var_change_over_time]
-
-                df_model_data_project = model_ippu.project(df_input_data)
-
+            # Get algo
+            output = self.func_eval_IPPU(params)
+        
         if self.subsector_model == "ElectricEnergy":
-            model_afolu = sm.AFOLU(sa.model_attributes)
-            df_output_data = model_afolu.project(df_input_data)
 
-
-            model_ippu = sm.IPPU(sa.model_attributes)
-
-            df_input_data = sa.model_attributes.transfer_df_variables(
-                df_input_data,
-                df_output_data,
-                model_ippu.integration_variables
-            )
-
-            df_ippu_out = model_ippu.project(df_input_data)
-
-            df_output_data = pd.merge(df_ippu_out, df_output_data)
-
-            model_energy = sm.NonElectricEnergy(sa.model_attributes)
-
-            df_input_data = sa.model_attributes.transfer_df_variables(
-                df_input_data,
-                df_output_data,
-                model_energy.integration_variables_non_fgtv
-            )
-                        
-            df_output_data = model_energy.project(df_input_data)
-                        
-
+            """
+            +++ 
+            +++ UNDER CONSTRUCTION
+            +++
+            """
 
         return output
+
 
     """
     --------------------------------------------
@@ -419,7 +341,6 @@ class CalibrationModel(RunModel):
     """
     def f(self, X):
         return self.objective_a(X)
-
 
     """
     ---------------------------------
@@ -439,76 +360,28 @@ class CalibrationModel(RunModel):
     def get_mse_test(self, params):
 
         if self.subsector_model == "AFOLU":
-            #print("\n\tAFOLU")
-            df_input_data = self.build_data_AFOLU(params)
-            model_afolu = AFOLU(sa.model_attributes)
-            df_model_data_project = model_afolu.project(df_input_data)
-            output = self.build_performance_test_AFOLU(df_model_data_project)
-
+            
+            # Get algo
+            output = self.func_eval_test_AFOLU(params)
+        
         if self.subsector_model == "CircularEconomy":
-            #print("\n\tRunning CircularEconomy")
-            df_input_data = self.build_data_CircularEconomy(params)
-            model_circular_economy = CircularEconomy(sa.model_attributes)
-            df_model_data_project = model_circular_economy.project(df_input_data)
-            output = self.build_performance_test_CircularEconomy(df_model_data_project)
-
+            # Get algo
+            output = self.func_eval_test_CircularEconomy(params)
+        
         if self.subsector_model == "IPPU":
-            if not self.downstream:
-                #print("\n\tRunning IPPU")
-                model_ippu = IPPU(sa.model_attributes)
-                df_model_data_project = model_ippu.project(df_input_data)
-            else:
-                # First run CircularEconomy model
-                model_circular_economy = CircularEconomy(sa.model_attributes)
-                df_input_data = self.df_input_var.copy()
-                df_input_data[self.calib_targets["CircularEconomy"]] = df_input_data[self.calib_targets["CircularEconomy"]] * self.best_vector["CircularEconomy"]
-                output_circular_economy = model_circular_economy.project(df_input_data)
-
-                # Build the new df_input_data with the output of CircularEconomy model
-                model_ippu = IPPU(sa.model_attributes)
-
-                df_input_data = sa.model_attributes.transfer_df_variables(
-                                df_input_data,
-                                output_circular_economy,
-                                model_ippu.integration_variables
-                            )
-                # Run IPPU model
-                df_input_data[var_no_change_over_time] = df_input_data[var_no_change_over_time].mean()*np.array(params)[index_var_no_change_over_time]
-
-                if list(var_change_over_time):
-                    df_input_data[var_change_over_time] = df_input_data[var_change_over_time]*np.array(params)[index_var_change_over_time]
-
-                df_model_data_project = model_ippu.project(df_input_data)
-
+            # Get algo
+            output = self.func_eval_test_IPPU(params)
+        
         if self.subsector_model == "ElectricEnergy":
-            model_afolu = sm.AFOLU(sa.model_attributes)
-            df_output_data = model_afolu.project(df_input_data)
 
-
-            model_ippu = sm.IPPU(sa.model_attributes)
-
-            df_input_data = sa.model_attributes.transfer_df_variables(
-                df_input_data,
-                df_output_data,
-                model_ippu.integration_variables
-            )
-
-            df_ippu_out = model_ippu.project(df_input_data)
-
-            df_output_data = pd.merge(df_ippu_out, df_output_data)
-
-            model_energy = sm.NonElectricEnergy(sa.model_attributes)
-
-            df_input_data = sa.model_attributes.transfer_df_variables(
-                df_input_data,
-                df_output_data,
-                model_energy.integration_variables_non_fgtv
-            )
-                        
-            df_output_data = model_energy.project(df_input_data)
-                        
+            """
+            +++ 
+            +++ UNDER CONSTRUCTION
+            +++
+            """
 
         return output
+
 
 
     def run_calibration(self,optimization_method,population, maxiter, param_algo):
@@ -549,7 +422,9 @@ class CalibrationModel(RunModel):
 
             print("--------- End Cross Validation: {} on Node {}\nOptimization time:  {} seconds ".format(self.cv_run ,self.id_mpi,(time.time() - start_time)))
             print(" Cross Validation: {} on Node {}. MSE Training : {}".format(self.cv_run ,self.id_mpi,mejor_valor))
+
             mse_test = self.get_mse_test(self.best_vector[self.subsector_model])
+
             print(" Cross Validation: {} on Node {}. MSE Test : {}".format(self.cv_run ,self.id_mpi,mse_test))
 
         if optimization_method == "differential_evolution":
@@ -663,7 +538,9 @@ class CalibrationModel(RunModel):
             self.fitness_values[self.subsector_model], self.best_vector[self.subsector_model] ,mejor_valor = PSO(f_cost,pop_size, max_iters, lb, ub,α,β,w,w_max,w_min)
             print("--------- End Cross Validation: {} on Node {}\nOptimization time:  {} seconds ".format(self.cv_run ,self.id_mpi,(time.time() - start_time)))
             print(" Cross Validation: {} on Node {}. MSE Training : {}".format(self.cv_run ,self.id_mpi,mejor_valor))
+
             mse_test = self.get_mse_test(self.best_vector[self.subsector_model])
+
             print(" Cross Validation: {} on Node {}. MSE Test : {}".format(self.cv_run ,self.id_mpi,mse_test))
 
 
