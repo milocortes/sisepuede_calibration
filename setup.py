@@ -16,7 +16,7 @@ setup(
     url="https://github.com/milocortes/sisepuede_calibration.git",
     install_requires=[
         "scipy>=1.7.3",
-        "pandas>=1.5.2",
+        "pandas>=1.3.5",
         "SQLAlchemy>=1.4.46",
         "julia==0.6.0"
     ],
