@@ -661,6 +661,8 @@ def PSO(f_cost,pop_size,max_iters,lb,ub,α,β,w,w_max,w_min):
         w.value = w_max - k * ((w_max-w_min)/maxiter)
 
         fitness_values.append(gbest_val.value)
-
+    
+    p.close()
+    
     return fitness_values, gbest_pos[:], gbest_val.value
 
