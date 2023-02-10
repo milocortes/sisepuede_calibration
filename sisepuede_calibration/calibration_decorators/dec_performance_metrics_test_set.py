@@ -118,3 +118,42 @@ def performance_test_IPPU(func):
 
         return output
     return wrapper_decorator
+
+
+# *****************************
+# ******  AllEnergy ***********
+# *****************************
+
+def performance_test_AllEnergy(func):
+    @functools.wraps(func)
+    def wrapper_decorator(calibration,df_model_data_project):
+
+        energy_crosswalk_estimado = {}
+        energy_crosswalk_observado = {}
+        energy_crosswalk_error = {}
+
+        for subsector, sisepuede_vars in calibration.var_co2_emissions_by_sector["AllEnergy"].items():
+            energy_crosswalk_estimado[subsector] = df_model_data_project[sisepuede_vars].sum(1).reset_index(drop = True) 
+            energy_crosswalk_observado[subsector] = calibration.df_co2_emissions.query(f"subsector_sisepuede == '{subsector}'")[["value"]].sum(1).reset_index(drop = True)
+            energy_crosswalk_error[subsector] = (energy_crosswalk_estimado[subsector] - energy_crosswalk_observado[subsector])**2
+
+        co2_df = pd.DataFrame(energy_crosswalk_error)
+        calibration.error_by_item = co2_df
+        calibration.error_by_sector_energy = energy_crosswalk_error
+        co2_df_total = co2_df.sum(1)
+
+        co2_df_observado = pd.DataFrame(energy_crosswalk_observado)
+
+        ponderadores = (co2_df_observado.mean().abs()/co2_df_observado.mean().abs().sum()).apply(math.exp)   
+        co2_df_total = (ponderadores*co2_df).sum(1)
+
+        if calibration.cv_calibration:
+
+            co2_df_total = [co2_df_total[i] for i in calibration.cv_training]
+            output = np.sum(co2_df_total)
+
+        else:
+            output = np.sum(co2_df_total)
+            
+        return output
+    return wrapper_decorator

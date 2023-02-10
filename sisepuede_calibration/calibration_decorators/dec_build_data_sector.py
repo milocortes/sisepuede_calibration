@@ -36,7 +36,7 @@ def data_AFOLU(func):
     @functools.wraps(func)
     def wrapper_decorator(calibration, df_input_data, params):
 
-        df_input_data = df_input_data.iloc[calibration.cv_training]
+        #df_input_data = df_input_data.iloc[calibration.cv_training]
 
         calib_bounds_AFOLU = calibration.df_calib_bounds.query("sector == 'AFOLU'").reset_index(drop = True)
 
@@ -76,7 +76,7 @@ def data_matrix_pij_AFOLU(func):
     @functools.wraps(func)
     def wrapper_decorator(calibration, df_input_data, params):
 
-        df_input_data = df_input_data.iloc[calibration.cv_training]
+        #df_input_data = df_input_data.iloc[calibration.cv_training]
 
         calib_bounds_AFOLU = calibration.df_calib_bounds.query("sector == 'AFOLU'").reset_index(drop = True)
 
@@ -114,7 +114,7 @@ def data_CircularEconomy(func):
     def wrapper_decorator(calibration, df_input_data, params):
 
         # Get years in training set
-        df_input_data = df_input_data.iloc[calibration.cv_training]
+        #df_input_data = df_input_data.iloc[calibration.cv_training]
         # Update time period (values needs >= 0)
         df_input_data["time_period"] = range(df_input_data.shape[0])
 
@@ -135,11 +135,65 @@ def data_IPPU(func):
     def wrapper_decorator(calibration, df_input_data, params):
 
         # Get years in training set
-        df_input_data = df_input_data.iloc[calibration.cv_training]
+        #df_input_data = df_input_data.iloc[calibration.cv_training]
         # Update time period (values needs >= 0)
         df_input_data["time_period"] = range(df_input_data.shape[0])
 
         df_input_data[calibration.calib_targets["IPPU"]] = df_input_data[calibration.calib_targets["IPPU"]]*np.array(params)
+
+        # Do something after
+        return df_input_data
+    return wrapper_decorator
+
+# *****************************
+# ***** NonElectricEnergy *****
+# *****************************
+
+def data_NonElectricEnergy(func):
+    @functools.wraps(func)
+    def wrapper_decorator(calibration, df_input_data, params):
+
+        """
+        +++ 
+        +++ UNDER CONSTRUCTION
+        +++
+        """
+
+        return df_input_data
+    return wrapper_decorator
+
+
+# *****************************
+# ******* ElectricEnergy ******
+# *****************************
+
+def data_ElectricEnergy(func):
+    @functools.wraps(func)
+    def wrapper_decorator(calibration, df_input_data, params):
+
+        """
+        +++ 
+        +++ UNDER CONSTRUCTION
+        +++
+        """
+        
+        return df_input_data
+    return wrapper_decorator
+
+# *****************************
+# ******* AllEnergy ******
+# *****************************
+
+def data_AllEnergy(func):
+    @functools.wraps(func)
+    def wrapper_decorator(calibration, df_input_data, params):
+
+        # Get years in training set
+        #df_input_data = df_input_data.iloc[calibration.cv_training]
+        # Update time period (values needs >= 0)
+        df_input_data["time_period"] = range(df_input_data.shape[0])
+
+        df_input_data[calibration.calib_targets["AllEnergy"]] = df_input_data[calibration.calib_targets["AllEnergy"]]*np.array(params)
 
         # Do something after
         return df_input_data

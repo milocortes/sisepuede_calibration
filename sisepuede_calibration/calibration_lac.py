@@ -109,6 +109,10 @@ class RunModel:
     def build_data_IPPU(self, df_input_data, params):
         pass
 
+    @data_AllEnergy
+    def build_data_AllEnergy(self, df_input_data, params):
+        pass
+
 
     # +++++++++++++++++++++++++++++++++++++++
     # Set decorators for get output data by sector
@@ -132,6 +136,10 @@ class RunModel:
 
     @get_output_data_ElectricEnergy
     def build_get_output_data_ElectricEnergy(self, params, print_sector_model = False):
+        pass
+
+    @get_output_data_AllEnergy
+    def build_get_output_data_AllEnergy(self, params, print_sector_model = False):
         pass
 
     """
@@ -166,9 +174,78 @@ class RunModel:
         if self.subsector_model == "ElectricEnergy":
             df_model_data_project = self.build_get_output_data_ElectricEnergy(params, print_sector_model)
 
+        if self.subsector_model == "AllEnergy":
+            df_model_data_project = self.build_get_output_data_AllEnergy(params, print_sector_model)
+
 
         return df_model_data_project
 
+    # +++++++++++++++++++++++++++++++++++++++
+    # Set decorators for get_calibrated data by sector
+    # +++++++++++++++++++++++++++++++++++++++
+
+    @get_calibrated_data_AFOLU
+    def build_get_calibrated_data_AFOLU(self, params, print_sector_model = False):
+        pass
+
+    @get_calibrated_data_CircularEconomy
+    def build_get_calibrated_data_CircularEconomy(self, params, print_sector_model = False):
+        pass
+
+    @get_calibrated_data_IPPU
+    def build_get_calibrated_data_IPPU(self, params, print_sector_model = False):
+        pass
+
+    @get_calibrated_data_NonElectricEnergy
+    def build_get_calibrated_data_NonElectricEnergy(self, params, print_sector_model = False):
+        pass
+
+    @get_calibrated_data_ElectricEnergy
+    def build_get_calibrated_data_ElectricEnergy(self, params, print_sector_model = False):
+        pass
+
+    @get_calibrated_data_AllEnergy
+    def build_get_calibrated_data_AllEnergy(self, params, print_sector_model = False):
+        pass
+
+
+    """
+    ---------------------------------
+    get_calibrated_data method
+    ---------------------------------
+
+    Description: The method recive params, run the subsector model,
+                 and compute the calibrated data of specific subsector model
+
+    # Inputs:
+             * params                   - calibration vector
+
+    # Output:
+             * df_model_data_project    - output data of specific subsector model
+    """
+
+    def get_calibrated_data(self, params, print_sector_model = False):
+    
+        if self.subsector_model == "AFOLU":
+            df_model_data_project = self.build_get_calibrated_data_AFOLU(params, print_sector_model)
+
+        if self.subsector_model == "CircularEconomy":
+            df_model_data_project = self.build_get_calibrated_data_CircularEconomy(params, print_sector_model)
+
+        if self.subsector_model == "IPPU":
+            df_model_data_project = self.build_get_calibrated_data_IPPU(params, print_sector_model)
+
+        if self.subsector_model == "NonElectricEnergy":
+            df_model_data_project = self.build_get_calibrated_data_NonElectricEnergy(params, print_sector_model)
+
+        if self.subsector_model == "ElectricEnergy":
+            df_model_data_project = self.build_get_calibrated_data_ElectricEnergy(params, print_sector_model)
+
+        if self.subsector_model == "AllEnergy":
+            df_model_data_project = self.build_get_calibrated_data_AllEnergy(params, print_sector_model)
+
+
+        return df_model_data_project
 
 
 class CalibrationModel(RunModel):
@@ -208,7 +285,8 @@ class CalibrationModel(RunModel):
         self.cv_test = cv_test
         self.var_co2_emissions_by_sector = {'CircularEconomy' : ["emission_co2e_subsector_total_wali","emission_co2e_subsector_total_waso","emission_co2e_subsector_total_trww"],
                                             'IPPU': ['emission_co2e_subsector_total_ippu'],
-                                            'AFOLU' : co2_emissions_by_sector}
+                                            'AFOLU' : co2_emissions_by_sector,
+                                            'AllEnergy' : co2_emissions_by_sector}
         self.cv_run = cv_run
         self.id_mpi = id_mpi
         self.fitness_values = {'AFOLU' : [], 'CircularEconomy' : [], 'IPPU' : []}
@@ -237,6 +315,10 @@ class CalibrationModel(RunModel):
     def build_performance_IPPU(self, df_model_data_project):
         pass
 
+    @performance_AllEnergy
+    def build_performance_AllEnergy(self, df_model_data_project):
+        pass
+
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     # Set decorators for performance metrics in test set by sector
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -251,6 +333,10 @@ class CalibrationModel(RunModel):
 
     @performance_test_IPPU
     def build_performance_test_IPPU(self, df_model_data_project):
+        pass
+
+    @performance_test_AllEnergy
+    def build_performance_test_AllEnergy(self, df_model_data_project):
         pass
 
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -269,6 +355,10 @@ class CalibrationModel(RunModel):
     def func_eval_IPPU(self, params):
         pass
 
+    @dec_func_eval_AllEnergy
+    def func_eval_AllEnergy(self, params):
+        pass
+
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     # Set decorators for function evaluation on test set by sector
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -283,6 +373,10 @@ class CalibrationModel(RunModel):
 
     @dec_func_eval_test_IPPU
     def func_eval_test_IPPU(self, params):
+        pass
+
+    @dec_func_eval_test_AllEnergy
+    def func_eval_test_AllEnergy(self, params):
         pass
 
     """
@@ -315,13 +409,10 @@ class CalibrationModel(RunModel):
             # Get algo
             output = self.func_eval_IPPU(params)
         
-        if self.subsector_model == "ElectricEnergy":
-
-            """
-            +++ 
-            +++ UNDER CONSTRUCTION
-            +++
-            """
+        if self.subsector_model == "AllEnergy":
+            # Get algo
+            output = self.func_eval_AllEnergy(params)
+        
 
         return output
 
@@ -372,14 +463,10 @@ class CalibrationModel(RunModel):
             # Get algo
             output = self.func_eval_test_IPPU(params)
         
-        if self.subsector_model == "ElectricEnergy":
-
-            """
-            +++ 
-            +++ UNDER CONSTRUCTION
-            +++
-            """
-
+        if self.subsector_model == "AllEnergy":
+            # Get algo
+            output = self.func_eval_test_AllEnergy(params)
+        
         return output
 
 

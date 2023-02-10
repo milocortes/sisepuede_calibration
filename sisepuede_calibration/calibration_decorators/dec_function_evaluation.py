@@ -122,3 +122,20 @@ def dec_func_eval_ElectricEnergy(func):
 
         return output
     return wrapper_decorator
+
+# *****************************
+# *******  AllEnergy **********
+# *****************************
+
+def dec_func_eval_AllEnergy(func):
+    @functools.wraps(func)
+    def wrapper_decorator(calibration, params):
+
+        # Get output data
+        df_model_data_project = calibration.build_get_output_data_AllEnergy(params)
+
+        # Build performance for AllEnergy            
+        output = calibration.build_performance_AllEnergy(df_model_data_project)
+        
+        return output
+    return wrapper_decorator

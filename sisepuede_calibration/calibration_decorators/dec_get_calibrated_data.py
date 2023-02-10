@@ -40,11 +40,11 @@ from model_ippu import IPPU
 # *****************************
 
 
-def get_output_data_AFOLU(func):
+def get_calibrated_data_AFOLU(func):
     @functools.wraps(func)
     def wrapper_decorator(calibration, params, print_sector_model = False):
         # Copy original input data
-        df_input_data = calibration.df_input_var.copy()
+        df_input_data = calibration.all_time_period_input_data.copy()
 
         # RUN AFOLU SECTOR
         if print_sector_model:
@@ -54,7 +54,7 @@ def get_output_data_AFOLU(func):
         model_afolu = AFOLU(sa.model_attributes)
         df_model_data_project = model_afolu.project(df_input_data)        
 
-        return df_model_data_project
+        return df_input_data
     return wrapper_decorator
 
 
@@ -62,12 +62,12 @@ def get_output_data_AFOLU(func):
 # ****  CircularEconomy *******
 # *****************************
 
-def get_output_data_CircularEconomy(func):
+def get_calibrated_data_CircularEconomy(func):
     @functools.wraps(func)
     def wrapper_decorator(calibration, params, print_sector_model = False):
 
         # Copy original input data
-        df_input_data = calibration.df_input_var.copy()       
+        df_input_data = calibration.all_time_period_input_data.copy()       
 
         if calibration.run_integrated_q:
             # RUN AFOLU SECTOR
@@ -110,7 +110,7 @@ def get_output_data_CircularEconomy(func):
             df_model_data_project = model_circular_economy.project(df_input_data)
 
 
-        return df_model_data_project
+        return df_input_data
     return wrapper_decorator
 
 
@@ -118,12 +118,12 @@ def get_output_data_CircularEconomy(func):
 # **********  IPPU ************
 # *****************************
 
-def get_output_data_IPPU(func):
+def get_calibrated_data_IPPU(func):
     @functools.wraps(func)
     def wrapper_decorator(calibration, params, print_sector_model = False):
         
         # Copy original input data
-        df_input_data = calibration.df_input_var.copy()       
+        df_input_data = calibration.all_time_period_input_data.copy()       
 
         if calibration.run_integrated_q:
 
@@ -187,19 +187,19 @@ def get_output_data_IPPU(func):
             df_model_data_project = model_ippu.project(df_input_data) 
 
 
-        return df_model_data_project
+        return df_input_data
     return wrapper_decorator
 
 # *****************************
 # ***** NonElectricEnergy *****
 # *****************************
 
-def get_output_data_NonElectricEnergy(func):
+def get_calibrated_data_NonElectricEnergy(func):
     @functools.wraps(func)
     def wrapper_decorator(calibration, params, print_sector_model = False):
         
         # Copy original input data
-        df_input_data = calibration.df_input_var.copy()        
+        df_input_data = calibration.all_time_period_input_data.copy()        
         
         # RUN AFOLU SECTOR
         if print_sector_model:
@@ -265,19 +265,19 @@ def get_output_data_NonElectricEnergy(func):
         # Build output data frame
         df_model_data_project = sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")
 
-        return df_model_data_project
+        return df_input_data
     return wrapper_decorator
 
 # *****************************
 # ******* ElectricEnergy ******
 # *****************************
 
-def get_output_data_ElectricEnergy(func):
+def get_calibrated_data_ElectricEnergy(func):
     @functools.wraps(func)
     def wrapper_decorator(calibration, params, print_sector_model = False):
 
         # Copy original input data
-        df_input_data = calibration.df_input_var.copy()        
+        df_input_data = calibration.all_time_period_input_data.copy()        
 
         # RUN AFOLU SECTOR
         if print_sector_model:
@@ -365,7 +365,7 @@ def get_output_data_ElectricEnergy(func):
         # Build output data frame
         df_model_data_project = sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")
 
-        return df_model_data_project
+        return df_input_data
     return wrapper_decorator
 
 
@@ -373,12 +373,12 @@ def get_output_data_ElectricEnergy(func):
 # ******* AllEnergy ******
 # *****************************
 
-def get_output_data_AllEnergy(func):
+def get_calibrated_data_AllEnergy(func):
     @functools.wraps(func)
     def wrapper_decorator(calibration, params, print_sector_model = False):
 
         # Copy original input data
-        df_input_data = calibration.df_input_var.copy()        
+        df_input_data = calibration.all_time_period_input_data.copy()        
 
         # RUN AFOLU SECTOR
         if print_sector_model:
@@ -483,5 +483,5 @@ def get_output_data_AllEnergy(func):
         # Build output data frame
         df_model_data_project = sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")
 
-        return df_model_data_project
+        return df_input_data
     return wrapper_decorator
