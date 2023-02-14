@@ -38,7 +38,7 @@ def data_AFOLU(func):
 
         #df_input_data = df_input_data.iloc[calibration.cv_training]
 
-        calib_bounds_AFOLU = calibration.df_calib_bounds.query("sector == 'AFOLU'").reset_index(drop = True)
+        calib_bounds_AFOLU = calibration.df_calib_bounds_afolu.query("sector == 'AFOLU'").reset_index(drop = True)
 
         agrupa = calib_bounds_AFOLU.groupby("group")
         group_list = calib_bounds_AFOLU["group"].unique()
@@ -78,7 +78,7 @@ def data_matrix_pij_AFOLU(func):
 
         #df_input_data = df_input_data.iloc[calibration.cv_training]
 
-        calib_bounds_AFOLU = calibration.df_calib_bounds.query("sector == 'AFOLU'").reset_index(drop = True)
+        calib_bounds_AFOLU = calibration.df_calib_bounds_afolu.query("sector == 'AFOLU'").reset_index(drop = True)
 
         agrupa = calib_bounds_AFOLU.query("group!=999").groupby("group")
         group_list = calib_bounds_AFOLU.query("group!=999")["group"].unique()
@@ -96,7 +96,10 @@ def data_matrix_pij_AFOLU(func):
 
         mixer = MixedLNDUTransitionFromBounds(eps = 0.0001)# eps is a correction threshold for transition matrices
         prop_pij = mixer.mix_transitions(params[-1],calibration.country)
-        prop_pij = prop_pij.query(f"year> {calibration.year_init-3}").reset_index(drop=True)
+        # SELECCIONAMOS LOS VALORES DE 2010 A 2015. Esto va a cambiar eventualmente. 
+        # PARCHE PROVISIONAL
+        #prop_pij = prop_pij.query(f"year> {calibration.year_init-3}").reset_index(drop=True)
+        prop_pij = prop_pij.iloc[11:17].reset_index(drop=True)
         df_input_data[prop_pij.columns[1:]] = prop_pij[prop_pij.columns[1:]]
         # Do something after
         return df_input_data

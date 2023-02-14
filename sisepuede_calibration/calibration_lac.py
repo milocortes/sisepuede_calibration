@@ -47,7 +47,7 @@ class RunModel:
 
     '''
 
-    def __init__(self, year_init, year_end, df_input_var, country, subsector_model, calib_targets,df_calib_bounds,all_time_period_input_data = None,downstream = False):
+    def __init__(self, year_init, year_end, df_input_var, country, subsector_model, calib_targets,df_calib_bounds, df_calib_bounds_afolu, all_time_period_input_data = None,downstream = False):
         self.year_init = year_init 
         self.year_end = year_end
         self.df_input_var = df_input_var
@@ -56,6 +56,7 @@ class RunModel:
         self.calib_targets[subsector_model] = calib_targets
         self.subsector_model = subsector_model
         self.df_calib_bounds = df_calib_bounds
+        self.df_calib_bounds_afolu = df_calib_bounds_afolu
         self.downstream = downstream
         self.best_vector = {'AFOLU' : None, 'CircularEconomy' : None, 'IPPU': None}
         self.all_time_period_input_data = all_time_period_input_data
@@ -276,9 +277,9 @@ class CalibrationModel(RunModel):
         * calib_vector              - List of calibration scalar
     '''
 
-    def __init__(self,  year_init, year_end, df_input_var, country, subsector_model, calib_targets, df_calib_bounds, all_time_period_input_data,
+    def __init__(self,  year_init, year_end, df_input_var, country, subsector_model, calib_targets, df_calib_bounds, df_calib_bounds_afolu, all_time_period_input_data,
                  df_co2_emissions, co2_emissions_by_sector = {}, cv_calibration = False, cv_training = [], cv_test = [], cv_run = 0, id_mpi = 0,downstream = False,weight_co2_flag = False, weight_co2 = [],precition = 6, run_integrated_q = False):
-        super(CalibrationModel, self).__init__(year_init, year_end, df_input_var, country, subsector_model, calib_targets,df_calib_bounds,all_time_period_input_data,downstream = False)
+        super(CalibrationModel, self).__init__(year_init, year_end, df_input_var, country, subsector_model, calib_targets,df_calib_bounds, df_calib_bounds_afolu, all_time_period_input_data,downstream = False)
         self.df_co2_emissions = df_co2_emissions
         self.cv_calibration = cv_calibration
         self.cv_training = cv_training
