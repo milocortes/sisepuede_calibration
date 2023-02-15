@@ -96,11 +96,23 @@ def data_matrix_pij_AFOLU(func):
 
         mixer = MixedLNDUTransitionFromBounds(eps = 0.0001)# eps is a correction threshold for transition matrices
         prop_pij = mixer.mix_transitions(params[-1],calibration.country)
+
         # SELECCIONAMOS LOS VALORES DE 2010 A 2015. Esto va a cambiar eventualmente. 
         # PARCHE PROVISIONAL
         #prop_pij = prop_pij.query(f"year> {calibration.year_init-3}").reset_index(drop=True)
         prop_pij = prop_pij.iloc[11:17].reset_index(drop=True)
-        df_input_data[prop_pij.columns[1:]] = prop_pij[prop_pij.columns[1:]]
+
+        if df_input_data.shape[0] == prop_pij.shape[0]:
+            df_input_data[prop_pij.columns[1:]] = prop_pij[prop_pij.columns[1:]]
+        else:
+            prop_pij_completa = prop_pij.copy()
+
+            while not prop_pij_completa.shape[0] ==  df_input_data.shape[0]:
+                ultimo_dato = pd.DataFrame({i:[j] for i,j in zip(prop_pij.iloc[-1].index, prop_pij.iloc[-1].values)}) 
+                prop_pij_completa = pd.concat([prop_pij_completa, ultimo_dato], ignore_index = True)
+            
+            df_input_data[prop_pij_completa.columns[1:]] = prop_pij_completa[prop_pij_completa.columns[1:]]
+            df_input_data = df_input_data.reset_index(drop = True)
         # Do something after
         return df_input_data
     return wrapper_decorator
