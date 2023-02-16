@@ -632,11 +632,11 @@ class CalibrationModel(RunModel):
             print(" Cross Validation: {} on Node {}. MSE Test : {}".format(self.cv_run ,self.id_mpi,mse_test))
 
 
-class TestFakeData:
+class ModelOutputData:
     '''
     ------------------------------------------
 
-    TestFakeData class
+    ModelOutputData class
 
     -------------------------------------------
     '''
@@ -645,40 +645,40 @@ class TestFakeData:
     # ***********  AFOLU **********
     # *****************************
     @staticmethod
-    @get_output_fake_data_AFOLU_dec
-    def get_output_fake_data_AFOLU(df_input_data, run_integrated_q = False):
+    @get_output_input_data_AFOLU_dec
+    def get_output_input_data_AFOLU(df_input_data, run_integrated_q = False):
         pass
 
     # *****************************
     # *****  CircularEconomy ******
     # *****************************
     @staticmethod
-    @get_output_fake_data_CircularEconomy_dec
-    def get_output_fake_data_CircularEconomy(df_input_data, run_integrated_q = False):
+    @get_output_input_data_CircularEconomy_dec
+    def get_output_input_data_CircularEconomy(df_input_data, run_integrated_q = False):
         pass
 
     # *****************************
     # ***********  IPPU ***********
     # *****************************
     @staticmethod
-    @get_output_fake_data_IPPU_dec
-    def get_output_fake_data_IPPU(df_input_data, run_integrated_q = True):
+    @get_output_input_data_IPPU_dec
+    def get_output_input_data_IPPU(df_input_data, run_integrated_q = True):
         pass
 
     # *****************************
     # *****  NonElectricEnergy ****
     # *****************************
     @staticmethod
-    @get_output_fake_data_NonElectricEnergy_dec
-    def get_output_fake_data_NonElectricEnergy(df_input_data, run_integrated_q = True):
+    @get_output_input_data_NonElectricEnergy_dec
+    def get_output_input_data_NonElectricEnergy(df_input_data, run_integrated_q = True):
         pass
 
     # *****************************
     # *****  ElectricEnergy *******
     # *****************************
     @staticmethod
-    @get_output_fake_data_ElectricEnergy_dec
-    def get_output_fake_data_ElectricEnergy(df_input_data, run_integrated_q = True):
+    @get_output_input_data_ElectricEnergy_dec
+    def get_output_input_data_ElectricEnergy(df_input_data, run_integrated_q = True):
         pass
 
 
@@ -686,7 +686,7 @@ class TestFakeData:
     # **** Fugitive emissions from Non-Electric Energy ****
     # *****************************************************
     @staticmethod
-    @get_output_fake_data_FugitiveNonElectricEnergy_dec
-    def get_output_fake_data_FugitiveNonElectricEnergy(df_input_data, run_integrated_q = True):
+    @get_output_input_data_AllEnergy_dec
+    def get_output_input_data_AllEnergy(df_input_data, run_integrated_q = True):
         pass
         

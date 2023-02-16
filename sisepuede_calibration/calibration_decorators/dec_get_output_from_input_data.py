@@ -32,7 +32,7 @@ from model_electricity import ElectricEnergy
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ***********************************************************
 
-             GET_OUTPUT_FROM_FAKE_DATA DECORATORS
+             GET_OUTPUT_FROM_INPUT_DATA DECORATORS
 
 ***********************************************************
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -45,7 +45,7 @@ from model_electricity import ElectricEnergy
 # ***********  AFOLU **********
 # *****************************
 
-def get_output_fake_data_AFOLU_dec(func):
+def get_output_input_data_AFOLU_dec(func):
     @functools.wraps(func)
     def wrapper_decorator(df_input_data, run_integrated_q):
 
@@ -64,7 +64,7 @@ def get_output_fake_data_AFOLU_dec(func):
 # *****  CircularEconomy ******
 # *****************************
 
-def get_output_fake_data_CircularEconomy_dec(func):
+def get_output_input_data_CircularEconomy_dec(func):
     @functools.wraps(func)
     def wrapper_decorator(df_input_data, run_integrated_q):
 
@@ -102,7 +102,7 @@ def get_output_fake_data_CircularEconomy_dec(func):
 # ***********  IPPU ***********
 # *****************************
 
-def get_output_fake_data_IPPU_dec(func):
+def get_output_input_data_IPPU_dec(func):
     @functools.wraps(func)
     def wrapper_decorator(df_input_data, run_integrated_q):
 
@@ -152,7 +152,7 @@ def get_output_fake_data_IPPU_dec(func):
 # *****  NonElectricEnergy ****
 # *****************************
 
-def get_output_fake_data_NonElectricEnergy_dec(func):
+def get_output_input_data_NonElectricEnergy_dec(func):
     @functools.wraps(func)
     def wrapper_decorator(df_input_data, run_integrated_q):
 
@@ -203,7 +203,13 @@ def get_output_fake_data_NonElectricEnergy_dec(func):
                 df_output_data = sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")
 
             else:
-                print("LOG ERROR HERE: CANNOT RUN WITHOUT IPPU")
+                try:
+                    print("\n\tRunning NonElectricEnergy")
+                    model_energy = sm.NonElectricEnergy(sa.model_attributes)                   
+                    df_output_data = model_energy.project(df_input_data)
+                except:
+                    print("LOG ERROR HERE: CANNOT RUN WITHOUT IPPU")
+                    df_output_data = None
 
             return df_output_data
     return wrapper_decorator
@@ -214,7 +220,7 @@ def get_output_fake_data_NonElectricEnergy_dec(func):
 # *****************************
 
 
-def get_output_fake_data_ElectricEnergy_dec(func):
+def get_output_input_data_ElectricEnergy_dec(func):
     @functools.wraps(func)
     def wrapper_decorator(df_input_data, run_integrated_q):
 
@@ -283,7 +289,22 @@ def get_output_fake_data_ElectricEnergy_dec(func):
                 df_output_data = sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")
 
             else:
-                print("LOG ERROR HERE: CANNOT RUN WITHOUT IPPU AND AFOLU")
+                try:
+                    print("\n\tRunning ElectricEnergy")
+                    
+                    model_elecricity = sm.ElectricEnergy(sa.model_attributes, 
+                                    sa.dir_jl, 
+                                    sa.dir_ref_nemo)
+
+                    # create the engine
+                    engine = sqlalchemy.create_engine(f"sqlite:///{sa.fp_sqlite_nemomod_db_tmp}")
+
+                    # run model
+                    df_output_data = model_elecricity.project(df_input_data, engine)
+
+                except:
+                    print("LOG ERROR HERE: CANNOT RUN WITHOUT IPPU AND AFOLU")
+                    df_output_data = None
 
             return df_output_data
     return wrapper_decorator
@@ -291,12 +312,12 @@ def get_output_fake_data_ElectricEnergy_dec(func):
 
 
 
-# *****************************************************
-# **** Fugitive emissions from Non-Electric Energy ****
-# *****************************************************
+# *****************************************************************
+# **** AllEnergy : Fugitive emissions from Non-Electric Energy ****
+# *****************************************************************
 
 
-def get_output_fake_data_FugitiveNonElectricEnergy_dec(func):
+def get_output_input_data_AllEnergy_dec(func):
     @functools.wraps(func)
     def wrapper_decorator(df_input_data, run_integrated_q):
 
@@ -343,8 +364,12 @@ def get_output_fake_data_FugitiveNonElectricEnergy_dec(func):
                 df_output_data.append(model_energy.project(df_input_data))
                 df_output_data = [sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")] 
 
+
+
                 print("\n\tRunning ElectricEnergy")
-                model_elecricity = sm.ElectricEnergy(sa.model_attributes, sa.dir_ref_nemo)
+                model_elecricity = sm.ElectricEnergy(sa.model_attributes, 
+                                    sa.dir_jl, 
+                                    sa.dir_ref_nemo)
 
                 df_input_data = sa.model_attributes.transfer_df_variables(
                         df_input_data,
@@ -358,7 +383,7 @@ def get_output_fake_data_FugitiveNonElectricEnergy_dec(func):
                 df_elec =  model_elecricity.project(df_input_data, engine)
                 df_output_data.append(df_elec)
                 df_output_data = [sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")]
-        
+                    
                 print("\n\tRunning NonElectricEnergy - Fugitive Emissions")
                 model_energy = sm.NonElectricEnergy(sa.model_attributes)
 
@@ -375,8 +400,14 @@ def get_output_fake_data_FugitiveNonElectricEnergy_dec(func):
                 df_output_data = sf.merge_output_df_list(df_output_data, sa.model_attributes, "concatenate")
 
             else:
-                print("LOG ERROR HERE: CANNOT RUN WITHOUT IPPU AND AFOLU")
+                try:
+                    print("\n\tRunning NonElectricEnergy - Fugitive Emissions")
+                    model_energy = sm.NonElectricEnergy(sa.model_attributes)
+                    df_output_data = model_energy.project(df_input_data, subsectors_project = sa.model_attributes.subsec_name_fgtv)
+                except:        
+                    print("LOG ERROR HERE: CANNOT RUN WITHOUT IPPU AND AFOLU")
 
+                    df_output_data = None
             return df_output_data
     return wrapper_decorator
 
