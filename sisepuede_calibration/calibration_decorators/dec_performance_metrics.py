@@ -86,7 +86,7 @@ def performance_CircularEconomy(func):
     @functools.wraps(func)
     def wrapper_decorator(calibration,df_model_data_project):
 
-        co2_df_total = np.array(df_model_data_project[calibration.var_co2_emissions_by_sector["CircularEconomy"]].sum(1))
+        co2_df_total = np.array(df_model_data_project[calibration.var_co2_emissions_by_sector["CircularEconomy"]].sum(1)) - np.array(df_model_data_project["emission_co2e_co2_waso_incineration"])
         co2_historical = np.array(calibration.df_co2_emissions["value"].tolist())*(1/1000)
 
         if calibration.cv_calibration:
