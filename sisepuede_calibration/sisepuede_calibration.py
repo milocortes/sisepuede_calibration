@@ -388,25 +388,6 @@ class CalibrationModel(RunModel):
     def build_performance_AllEnergy(self, df_model_data_project):
         pass
 
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    # Set decorators for performance metrics in test set by sector
-    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @performance_test_AFOLU
-    def build_performance_test_AFOLU(self, df_model_data_project):
-        pass
-
-    @performance_test_CircularEconomy
-    def build_performance_test_CircularEconomy(self, df_model_data_project):
-        pass
-
-    @performance_test_IPPU
-    def build_performance_test_IPPU(self, df_model_data_project):
-        pass
-
-    @performance_test_AllEnergy
-    def build_performance_test_AllEnergy(self, df_model_data_project):
-        pass
 
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     # Set decorators for function evaluation by sector
