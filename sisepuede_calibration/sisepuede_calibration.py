@@ -347,7 +347,7 @@ class CalibrationModel(RunModel):
 
     def __init__(self, year_init, year_end, df_input_var, country, subsector_model, calib_targets, df_calib_bounds, all_time_period_input_data,
                  df_co2_emissions, co2_emissions_by_sector = {}, cv_calibration = False, cv_training = [], cv_test = [], cv_run = 0, id_mpi = 0,downstream = False,weight_co2_flag = False, weight_co2 = [],precition = 6, run_integrated_q = False):
-        super(CalibrationModel, self).__init__(year_init, year_end, df_input_var, country, subsector_model, calib_targets,df_calib_bounds, all_time_period_input_data,downstream = False)
+        super(CalibrationModel, self).__init__(year_init, year_end, df_input_var, country, subsector_model, calib_targets,df_calib_bounds, all_time_period_input_data)
         self.df_co2_emissions = df_co2_emissions
         self.cv_calibration = cv_calibration
         self.cv_training = cv_training
