@@ -519,8 +519,11 @@ class CalibrationModel(RunModel):
 
             # 1 - Define the upper and lower bounds of the search space
             n_dim =  len(self.calib_targets[self.subsector_model])              # Number of dimensions of the problem
-            lb = [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "min_35"].item()  for i in self.calib_targets[self.subsector_model]]  # lower bound for the search space
-            ub =  [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "max_35"].item()  for i in self.calib_targets[self.subsector_model]] # upper bound for the search space
+            #lb = [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "min_35"].item()  for i in self.calib_targets[self.subsector_model]]  # lower bound for the search space
+            #ub =  [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "max_35"].item()  for i in self.calib_targets[self.subsector_model]] # upper bound for the search space
+            lb = [self.df_calib_bounds[self.subsector_model].loc[self.df_calib_bounds[self.subsector_model]["variable"] == i, "min_35"].item()  for i in self.calib_targets[self.subsector_model]]  # lower bound for the search space
+            ub =  [self.df_calib_bounds[self.subsector_model].loc[self.df_calib_bounds[self.subsector_model]["variable"] == i, "max_35"].item()  for i in self.calib_targets[self.subsector_model]] # upper bound for the search space
+ 
             lb = np.array(lb)
             ub = np.array(ub)
 
@@ -554,8 +557,11 @@ class CalibrationModel(RunModel):
 
             # 1 - Define the upper and lower bounds of the search space
             n_dim =  len(self.calib_targets[self.subsector_model])              # Number of dimensions of the problem
-            lb = [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "min_35"].item()  for i in self.calib_targets[self.subsector_model]]  # lower bound for the search space
-            ub =  [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "max_35"].item()  for i in self.calib_targets[self.subsector_model]] # upper bound for the search space
+            #lb = [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "min_35"].item()  for i in self.calib_targets[self.subsector_model]]  # lower bound for the search space
+            #ub =  [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "max_35"].item()  for i in self.calib_targets[self.subsector_model]] # upper bound for the search space
+            lb = [self.df_calib_bounds[self.subsector_model].loc[self.df_calib_bounds[self.subsector_model]["variable"] == i, "min_35"].item()  for i in self.calib_targets[self.subsector_model]]  # lower bound for the search space
+            ub =  [self.df_calib_bounds[self.subsector_model].loc[self.df_calib_bounds[self.subsector_model]["variable"] == i, "max_35"].item()  for i in self.calib_targets[self.subsector_model]] # upper bound for the search space
+ 
             lb = np.array(lb)
             ub = np.array(ub)
 
@@ -589,8 +595,11 @@ class CalibrationModel(RunModel):
 
             # 1 - Define the upper and lower bounds of the search space
             n_dim =  len(self.calib_targets[self.subsector_model])              # Number of dimensions of the problem
-            lb = [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "min_35"].item()  for i in self.calib_targets[self.subsector_model]]  # lower bound for the search space
-            ub =  [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "max_35"].item()  for i in self.calib_targets[self.subsector_model]] # upper bound for the search space
+            #lb = [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "min_35"].item()  for i in self.calib_targets[self.subsector_model]]  # lower bound for the search space
+            #ub =  [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "max_35"].item()  for i in self.calib_targets[self.subsector_model]] # upper bound for the search space
+            lb = [self.df_calib_bounds[self.subsector_model].loc[self.df_calib_bounds[self.subsector_model]["variable"] == i, "min_35"].item()  for i in self.calib_targets[self.subsector_model]]  # lower bound for the search space
+            ub =  [self.df_calib_bounds[self.subsector_model].loc[self.df_calib_bounds[self.subsector_model]["variable"] == i, "max_35"].item()  for i in self.calib_targets[self.subsector_model]] # upper bound for the search space
+ 
             lb = np.array(lb)
             ub = np.array(ub)
 
