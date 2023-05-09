@@ -85,7 +85,7 @@ def data_matrix_pij_AFOLU(func):
         # Update time period (values needs >= 0)
         df_input_data["time_period"] = range(df_input_data.shape[0])
 
-        df_input_data[calibration.calib_targets["AFOLU"][:-1]] = df_input_data[calibration.calib_targets["AFOLU"]]*np.array(params[:-1])
+        df_input_data[calibration.calib_targets["AFOLU"][:-1]] = df_input_data[calibration.calib_targets["AFOLU"][:-1]]*np.array(params[:-1])
 
         # Calibrate pij
 
