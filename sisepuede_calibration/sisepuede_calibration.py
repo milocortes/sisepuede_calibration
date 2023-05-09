@@ -125,7 +125,7 @@ class RunModel:
     # Set decorators for build data by sector
     # +++++++++++++++++++++++++++++++++++++++
 
-    @data_matrix_pij_AFOLU
+    @data_AFOLU
     def build_data_AFOLU(self, df_input_data, params):
         pass
 
