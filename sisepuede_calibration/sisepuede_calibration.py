@@ -343,7 +343,7 @@ class CalibrationModel(RunModel):
     def update_model(self,subsector_model, df_input_var, all_time_period_input_data, calib_targets = []):
         self.subsector_model = subsector_model
 
-        if calib_targets:
+        if not calib_targets:
             self.calib_targets[subsector_model] = self.df_calib_bounds.query(f"sector =='{subsector_model}'")["variable"].reset_index(drop = True).copy()
         else:
             self.calib_targets[subsector_model] = calib_targets
