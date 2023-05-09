@@ -49,6 +49,32 @@ def data_AFOLU(func):
             group = int(group)
             if group == 0:
                 index_var_group = calib_bounds_AFOLU["variable"].iloc[agrupa.groups[group]]
+                df_input_data[index_var_group] =  df_input_data[index_var_group]*params[:-(total_groups-1)]
+                #df_input_data[index_var_group] = df_input_data[index_var_group].apply(lambda x: round(x, calibration.precition))
+            index_var_group = calib_bounds_AFOLU["variable"].iloc[agrupa.groups[group]]
+            df_input_data[index_var_group] =  df_input_data[index_var_group]*params[group-total_groups]
+            #df_input_data[index_var_group] = df_input_data[index_var_group].apply(lambda x: round(x, calibration.precition))
+
+        return df_input_data
+    return wrapper_decorator
+
+def data_matrix_pij_AFOLU(func):
+    @functools.wraps(func)
+    def wrapper_decorator(calibration, df_input_data, params):
+
+        #df_input_data = df_input_data.iloc[calibration.cv_training]
+
+        #calib_bounds_AFOLU = calibration.calib_targets["AFOLU"].query("sector == 'AFOLU'").reset_index(drop = True)
+        calib_bounds_AFOLU = calibration.df_calib_bounds.query("sector == 'AFOLU'").reset_index(drop = True)
+
+        agrupa = calib_bounds_AFOLU.query("group!=999").groupby("group")
+        group_list = calib_bounds_AFOLU.query("group!=999")["group"].unique()
+        total_groups = len(group_list)
+
+        for group in group_list:
+            group = int(group)
+            if group == 0:
+                index_var_group = calib_bounds_AFOLU["variable"].iloc[agrupa.groups[group]]
                 df_input_data[index_var_group] =  df_input_data[index_var_group]*params[:-(total_groups-1)-1]
                 #df_input_data[index_var_group] = df_input_data[index_var_group].apply(lambda x: round(x, calibration.precition))
             index_var_group = calib_bounds_AFOLU["variable"].iloc[agrupa.groups[group]]
@@ -84,48 +110,6 @@ def data_AFOLU(func):
         # Do something after
         return df_input_data
     return wrapper_decorator
-
-def data_matrix_pij_AFOLU(func):
-    @functools.wraps(func)
-    def wrapper_decorator(calibration, df_input_data, params):
-
-        # Update time period (values needs >= 0)
-        df_input_data["time_period"] = range(df_input_data.shape[0])
-
-        df_input_data[calibration.calib_targets["AFOLU"][:-1]] = df_input_data[calibration.calib_targets["AFOLU"][:-1]]*np.array(params[:-1])
-
-        # Calibrate pij
-
-        mixer = MixedLNDUTransitionFromBounds(eps = 0.0001)# eps is a correction threshold for transition matrices
-        
-        # Correspondence iso code 3 - SISEPUEDE
-        iso3_codes_lac = ["ARG", "BHS", "BRB", "BLZ", "BOL", "BRA", "CHL", "COL", "CRI", "DOM", "ECU", "SLV", "GTM", "GUY", "HTI", "HND", "JAM", "MEX", "NIC", "PAN", "PRY", "PER", "SUR", "TTO", "URY", "VEN"]
-        country_names_lac = ['argentina', 'bahamas', 'barbados', 'belize', 'bolivia', 'brazil', 'chile', 'colombia', 'costa_rica', 'dominican_republic', 'ecuador', 'el_salvador', 'guatemala', 'guyana', 'haiti', 'honduras', 'jamaica', 'mexico', 'nicaragua', 'panama', 'paraguay', 'peru', 'suriname', 'trinidad_and_tobago', 'uruguay', 'venezuela']
-
-        correspondece_iso_names = {x:y for x,y in zip(iso3_codes_lac, country_names_lac)}
-
-        prop_pij = mixer.mix_transitions(params[-1],correspondece_iso_names[calibration.country])
-
-        # SELECCIONAMOS LOS VALORES DE 2010 A 2015. Esto va a cambiar eventualmente. 
-        # PARCHE PROVISIONAL
-        #prop_pij = prop_pij.query(f"year> {calibration.year_init-3}").reset_index(drop=True)
-        prop_pij = prop_pij.iloc[11:17].reset_index(drop=True)
-
-        if df_input_data.shape[0] == prop_pij.shape[0]:
-            df_input_data[prop_pij.columns[1:]] = prop_pij[prop_pij.columns[1:]]
-        else:
-            prop_pij_completa = prop_pij.copy()
-
-            while not prop_pij_completa.shape[0] ==  df_input_data.shape[0]:
-                ultimo_dato = pd.DataFrame({i:[j] for i,j in zip(prop_pij.iloc[-1].index, prop_pij.iloc[-1].values)}) 
-                prop_pij_completa = pd.concat([prop_pij_completa, ultimo_dato], ignore_index = True)
-            
-            df_input_data[prop_pij_completa.columns[1:]] = prop_pij_completa[prop_pij_completa.columns[1:]]
-            df_input_data = df_input_data.reset_index(drop = True)
-        # Do something after
-        return df_input_data
-    return wrapper_decorator
-
 
 
 # *****************************
