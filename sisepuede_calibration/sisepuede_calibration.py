@@ -112,18 +112,17 @@ class RunModel:
         self.year_end = year_end
         self.df_input_var = df_input_var
         self.country = country
-        self.calib_targets = {}
-        self.calib_targets[subsector_model] = calib_targets
         self.subsector_model = subsector_model
-        self.df_calib_bounds = {}
-        self.df_calib_bounds[subsector_model] = df_calib_bounds
-        self.best_vector = {'AFOLU' : None, 'CircularEconomy' : None, 'IPPU': None}
+        self.df_calib_bounds = df_calib_bounds
+        self.calib_targets = {}
+        self.calib_targets[subsector_model] = df_calib_bounds.query(f"sector =='{subsector_model}'")["calib_targets"].reset_index(drop = True)
+        self.best_vector = {}
         self.all_time_period_input_data = all_time_period_input_data
 
 
     """
     ---------------------------------
-    set_calib_targets method
+    update_model method
     ---------------------------------
 
     Description: The method receive the subsector model to set the calibration targets
@@ -132,25 +131,11 @@ class RunModel:
              * subsector_model              - Subsector model name
              * calib_targets_model          - Calibration targets
     """
-    def set_calib_targets(self,subsector_model,calib_targets_model):
-        self.calib_targets[subsector_model] = calib_targets_model
 
+    def update_model(self,subsector_model):
+        self.subsector_model = subsector_model
+        self.calib_targets[subsector_model] = df_calib_bounds.query(f"sector =='{subsector_model}'")["calib_targets"].reset_index(drop = True)
 
-
-    """
-    ---------------------------------
-    set_best_vector method
-    ---------------------------------
-
-    Description: The method receive the subsector model to set the best vector found in
-                 the calibration
-
-    # Inputs:
-             * subsector_model          - Subsector model name
-             * vector                   - vector
-    """
-    def set_best_vector(self,subsector_model,vector):
-        self.best_vector[subsector_model] = vector
 
     # +++++++++++++++++++++++++++++++++++++++
     # Set decorators for build data by sector
@@ -346,21 +331,11 @@ class CalibrationModel(RunModel):
     '''
 
     def __init__(self, year_init, year_end, df_input_var, country, subsector_model, calib_targets, df_calib_bounds, all_time_period_input_data,
-                 df_co2_emissions, co2_emissions_by_sector = {}, cv_calibration = False, cv_training = [], cv_test = [], cv_run = 0, id_mpi = 0,downstream = False,weight_co2_flag = False, weight_co2 = [],precition = 6, run_integrated_q = False):
+                 df_co2_emissions, co2_emissions_by_sector = {}, precition = 6, run_integrated_q = False):
         super(CalibrationModel, self).__init__(year_init, year_end, df_input_var, country, subsector_model, calib_targets,df_calib_bounds, all_time_period_input_data)
         self.df_co2_emissions = df_co2_emissions
-        self.cv_calibration = cv_calibration
-        self.cv_training = cv_training
-        self.cv_test = cv_test
-        self.var_co2_emissions_by_sector = {'CircularEconomy' : ["emission_co2e_subsector_total_wali","emission_co2e_subsector_total_waso","emission_co2e_subsector_total_trww"],
-                                            'IPPU': ['emission_co2e_subsector_total_ippu'],
-                                            'AFOLU' : co2_emissions_by_sector,
-                                            'AllEnergy' : co2_emissions_by_sector}
-        self.cv_run = cv_run
-        self.id_mpi = id_mpi
-        self.fitness_values = {'AFOLU' : [], 'CircularEconomy' : [], 'IPPU' : []}
-        self.weight_co2_flag = weight_co2_flag
-        self.weight_co2 = np.array(weight_co2)
+        self.var_co2_emissions_by_sector = co2_emissions_by_sector
+        self.fitness_values = {}
         self.item_val_afolu_total_item_fao = None
         self.precition = precition
         self.run_integrated_q = run_integrated_q
@@ -491,7 +466,7 @@ class CalibrationModel(RunModel):
             print("------------------------------------------------")
             start_time = time.time()
 
-            print("--------- Start Cross Validation: {} on Node {}. Model: {}".format(self.cv_run,self.id_mpi,self.subsector_model))
+            print(f"--------- Start Calibration. Model: {self.subsector_model}. Algorithm : {optimization_method}")
 
             n_variables = len(self.calib_targets[self.subsector_model])
             i_sup_vec = [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "max_35"].item()  for i in self.calib_targets[self.subsector_model]]
@@ -500,13 +475,10 @@ class CalibrationModel(RunModel):
             pc = param_algo["pc"]
             binary_genetic = BinaryGenetic(population,n_variables,i_sup_vec,i_inf_vec,precision,maxiter,pc)
             self.fitness_values[self.subsector_model], self.best_vector[self.subsector_model] ,mejor_valor= binary_genetic.run_optimization(self.f)
+        
+            print(f"Best value : {mejor_valor}")
+            print(f"--------- End Calibration\nOptimization time:  {time.time() - start_time} seconds ")
 
-            print("--------- End Cross Validation: {} on Node {}\nOptimization time:  {} seconds ".format(self.cv_run ,self.id_mpi,(time.time() - start_time)))
-            print(" Cross Validation: {} on Node {}. MSE Training : {}".format(self.cv_run ,self.id_mpi,mejor_valor))
-
-            #mse_test = self.get_mse_test(self.best_vector[self.subsector_model])
-
-            #print(" Cross Validation: {} on Node {}. MSE Test : {}".format(self.cv_run ,self.id_mpi,mse_test))
 
         if optimization_method == "differential_evolution":
             print("------------------------------------------------")
@@ -515,14 +487,14 @@ class CalibrationModel(RunModel):
 
             start_time = time.time()
 
-            print("--------- Start Cross Validation: {} on Node {}. Model: {}".format(self.cv_run,self.id_mpi,self.subsector_model))
+            print(f"--------- Start Calibration. Model: {self.subsector_model}. Algorithm : {optimization_method}")
 
             # 1 - Define the upper and lower bounds of the search space
             n_dim =  len(self.calib_targets[self.subsector_model])              # Number of dimensions of the problem
-            #lb = [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "min_35"].item()  for i in self.calib_targets[self.subsector_model]]  # lower bound for the search space
-            #ub =  [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "max_35"].item()  for i in self.calib_targets[self.subsector_model]] # upper bound for the search space
-            lb = [self.df_calib_bounds[self.subsector_model].loc[self.df_calib_bounds[self.subsector_model]["variable"] == i, "min_35"].item()  for i in self.calib_targets[self.subsector_model]]  # lower bound for the search space
-            ub =  [self.df_calib_bounds[self.subsector_model].loc[self.df_calib_bounds[self.subsector_model]["variable"] == i, "max_35"].item()  for i in self.calib_targets[self.subsector_model]] # upper bound for the search space
+            lb = [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "min_35"].item()  for i in self.calib_targets[self.subsector_model]]  # lower bound for the search space
+            ub =  [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "max_35"].item()  for i in self.calib_targets[self.subsector_model]] # upper bound for the search space
+            #lb = [self.df_calib_bounds[self.subsector_model].loc[self.df_calib_bounds[self.subsector_model]["variable"] == i, "min_35"].item()  for i in self.calib_targets[self.subsector_model]]  # lower bound for the search space
+            #ub =  [self.df_calib_bounds[self.subsector_model].loc[self.df_calib_bounds[self.subsector_model]["variable"] == i, "max_35"].item()  for i in self.calib_targets[self.subsector_model]] # upper bound for the search space
  
             lb = np.array(lb)
             ub = np.array(ub)
@@ -540,10 +512,9 @@ class CalibrationModel(RunModel):
             # 5 - Run the DE algorithm
             # call DE
             self.fitness_values[self.subsector_model], self.best_vector[self.subsector_model] ,mejor_valor = DE(f_cost,pop_size, max_iters,pc, lb, ub, step_size = 0.8)
-            print("--------- End Cross Validation: {} on Node {}\nOptimization time:  {} seconds ".format(self.cv_run ,self.id_mpi,(time.time() - start_time)))
-            print(" Cross Validation: {} on Node {}. MSE Training : {}".format(self.cv_run ,self.id_mpi,mejor_valor[0]))
-            #mse_test = self.get_mse_test(self.best_vector[self.subsector_model])
-            #print(" Cross Validation: {} on Node {}. MSE Test : {}".format(self.cv_run ,self.id_mpi,mse_test))
+            
+            print(f"Best value : {mejor_valor}")
+            print(f"--------- End Calibration\nOptimization time:  {time.time() - start_time} seconds ")
 
         if optimization_method == "differential_evolution_parallel":
             
@@ -553,14 +524,14 @@ class CalibrationModel(RunModel):
 
             start_time = time.time()
 
-            print("--------- Start Cross Validation: {} on Node {}. Model: {}".format(self.cv_run,self.id_mpi,self.subsector_model))
+            print(f"--------- Start Calibration. Model: {self.subsector_model}. Algorithm : {optimization_method}")
 
             # 1 - Define the upper and lower bounds of the search space
             n_dim =  len(self.calib_targets[self.subsector_model])              # Number of dimensions of the problem
-            #lb = [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "min_35"].item()  for i in self.calib_targets[self.subsector_model]]  # lower bound for the search space
-            #ub =  [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "max_35"].item()  for i in self.calib_targets[self.subsector_model]] # upper bound for the search space
-            lb = [self.df_calib_bounds[self.subsector_model].loc[self.df_calib_bounds[self.subsector_model]["variable"] == i, "min_35"].item()  for i in self.calib_targets[self.subsector_model]]  # lower bound for the search space
-            ub =  [self.df_calib_bounds[self.subsector_model].loc[self.df_calib_bounds[self.subsector_model]["variable"] == i, "max_35"].item()  for i in self.calib_targets[self.subsector_model]] # upper bound for the search space
+            lb = [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "min_35"].item()  for i in self.calib_targets[self.subsector_model]]  # lower bound for the search space
+            ub =  [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "max_35"].item()  for i in self.calib_targets[self.subsector_model]] # upper bound for the search space
+            #lb = [self.df_calib_bounds[self.subsector_model].loc[self.df_calib_bounds[self.subsector_model]["variable"] == i, "min_35"].item()  for i in self.calib_targets[self.subsector_model]]  # lower bound for the search space
+            #ub =  [self.df_calib_bounds[self.subsector_model].loc[self.df_calib_bounds[self.subsector_model]["variable"] == i, "max_35"].item()  for i in self.calib_targets[self.subsector_model]] # upper bound for the search space
  
             lb = np.array(lb)
             ub = np.array(ub)
@@ -578,10 +549,10 @@ class CalibrationModel(RunModel):
             # 5 - Run the DE algorithm
             # call DE
             self.fitness_values[self.subsector_model], self.best_vector[self.subsector_model] ,mejor_valor = DE_par(f_cost,pop_size, max_iters,pc, lb, ub, step_size = 0.4)
-            print("--------- End Cross Validation: {} on Node {}\nOptimization time:  {} seconds ".format(self.cv_run ,self.id_mpi,(time.time() - start_time)))
-            print(" Cross Validation: {} on Node {}. MSE Training : {}".format(self.cv_run ,self.id_mpi,mejor_valor[0]))
-            #mse_test = self.get_mse_test(self.best_vector[self.subsector_model])
-            #print(" Cross Validation: {} on Node {}. MSE Test : {}".format(self.cv_run ,self.id_mpi,mse_test))
+
+            print(f"Best value : {mejor_valor}")
+            print(f"--------- End Calibration\nOptimization time:  {time.time() - start_time} seconds ")
+
 
         if optimization_method == "pso":
             
@@ -591,14 +562,14 @@ class CalibrationModel(RunModel):
 
             start_time = time.time()
 
-            print("--------- Start Cross Validation: {} on Node {}. Model: {}".format(self.cv_run,self.id_mpi,self.subsector_model))
+            print(f"--------- Start Calibration. Model: {self.subsector_model}. Algorithm : {optimization_method}")
 
             # 1 - Define the upper and lower bounds of the search space
             n_dim =  len(self.calib_targets[self.subsector_model])              # Number of dimensions of the problem
-            #lb = [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "min_35"].item()  for i in self.calib_targets[self.subsector_model]]  # lower bound for the search space
-            #ub =  [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "max_35"].item()  for i in self.calib_targets[self.subsector_model]] # upper bound for the search space
-            lb = [self.df_calib_bounds[self.subsector_model].loc[self.df_calib_bounds[self.subsector_model]["variable"] == i, "min_35"].item()  for i in self.calib_targets[self.subsector_model]]  # lower bound for the search space
-            ub =  [self.df_calib_bounds[self.subsector_model].loc[self.df_calib_bounds[self.subsector_model]["variable"] == i, "max_35"].item()  for i in self.calib_targets[self.subsector_model]] # upper bound for the search space
+            lb = [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "min_35"].item()  for i in self.calib_targets[self.subsector_model]]  # lower bound for the search space
+            ub =  [self.df_calib_bounds.loc[self.df_calib_bounds["variable"] == i, "max_35"].item()  for i in self.calib_targets[self.subsector_model]] # upper bound for the search space
+            #lb = [self.df_calib_bounds[self.subsector_model].loc[self.df_calib_bounds[self.subsector_model]["variable"] == i, "min_35"].item()  for i in self.calib_targets[self.subsector_model]]  # lower bound for the search space
+            #ub =  [self.df_calib_bounds[self.subsector_model].loc[self.df_calib_bounds[self.subsector_model]["variable"] == i, "max_35"].item()  for i in self.calib_targets[self.subsector_model]] # upper bound for the search space
  
             lb = np.array(lb)
             ub = np.array(ub)
@@ -626,10 +597,7 @@ class CalibrationModel(RunModel):
             # 5 - Run the PSO algorithm
             # call DE
             self.fitness_values[self.subsector_model], self.best_vector[self.subsector_model] ,mejor_valor = PSO(f_cost,pop_size, max_iters, lb, ub,α,β,w,w_max,w_min)
-            print("--------- End Cross Validation: {} on Node {}\nOptimization time:  {} seconds ".format(self.cv_run ,self.id_mpi,(time.time() - start_time)))
-            print(" Cross Validation: {} on Node {}. MSE Training : {}".format(self.cv_run ,self.id_mpi,mejor_valor))
 
-            #mse_test = self.get_mse_test(self.best_vector[self.subsector_model])
-
-            #print(" Cross Validation: {} on Node {}. MSE Test : {}".format(self.cv_run ,self.id_mpi,mse_test))
+            print(f"Best value : {mejor_valor}")
+            print(f"--------- End Calibration\nOptimization time:  {time.time() - start_time} seconds ")
 

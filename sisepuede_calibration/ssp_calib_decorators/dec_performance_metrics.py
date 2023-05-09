@@ -56,21 +56,8 @@ def performance_AFOLU(func):
         ponderadores = (co2_df_observado.mean().abs()/co2_df_observado.mean().abs().sum()).apply(math.exp)   
         co2_df_total = (ponderadores*co2_df).sum(1)
 
-        if calibration.cv_calibration:
-            """
-            co2_df_total = np.array([co2_df_total[i] for i in calibration.cv_training])
-            output = np.mean(co2_df_total)
-            """
-            co2_df_total = [co2_df_total[i] for i in calibration.cv_training]
-            output = np.sum(co2_df_total)
 
-        else:
-            output = np.sum(co2_df_total)
-            """
-            if any((np.mean(calibration.percent_diff[["5058","6750"]]).to_numpy()>30).flatten()):
-                return output + 10000000
-            else:
-            """
+        output = np.sum(co2_df_total)
 
         # Do something after
         return output
@@ -89,12 +76,7 @@ def performance_CircularEconomy(func):
         co2_df_total = np.array(df_model_data_project[calibration.var_co2_emissions_by_sector["CircularEconomy"]].sum(1)) - np.array(df_model_data_project["emission_co2e_co2_waso_incineration"])
         co2_historical = np.array(calibration.df_co2_emissions["value"].tolist())*(1/1000)
 
-        if calibration.cv_calibration:
-
-            output = np.mean([(co2_df_total[i] - co2_historical[i])**2 for i in calibration.cv_training])
-            
-        else:
-            output = np.mean(np.mean(( co2_df_total - co2_historical )**2))
+        output = np.mean(np.mean(( co2_df_total - co2_historical )**2))
 
         return output
     return wrapper_decorator
@@ -112,12 +94,7 @@ def performance_IPPU(func):
         co2_df_total = np.array(df_model_data_project[calibration.var_co2_emissions_by_sector["IPPU"]].sum(1))
         co2_historical = np.array(calibration.df_co2_emissions["value"].tolist())*(1/1000)
 
-        if calibration.cv_calibration:
-
-            output = np.mean([(co2_df_total[i] - co2_historical[i])**2 for i in calibration.cv_training])
-            
-        else:
-            output = np.mean(np.mean(( co2_df_total - co2_historical )**2))
+        output = np.mean(np.mean(( co2_df_total - co2_historical )**2))
 
         return output
     return wrapper_decorator
@@ -150,13 +127,7 @@ def performance_AllEnergy(func):
         ponderadores = (co2_df_observado.mean().abs()/co2_df_observado.mean().abs().sum()).apply(math.exp)   
         co2_df_total = (ponderadores*co2_df).sum(1)
 
-        if calibration.cv_calibration:
-
-            co2_df_total = [co2_df_total[i] for i in calibration.cv_training]
-            output = np.sum(co2_df_total)
-
-        else:
-            output = np.sum(co2_df_total)
+        output = np.sum(co2_df_total)
             
         return output
     return wrapper_decorator

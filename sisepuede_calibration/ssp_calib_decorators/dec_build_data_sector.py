@@ -79,7 +79,7 @@ def data_matrix_pij_AFOLU(func):
         #df_input_data = df_input_data.iloc[calibration.cv_training]
 
         #calib_bounds_AFOLU = calibration.calib_targets["AFOLU"].query("sector == 'AFOLU'").reset_index(drop = True)
-        calib_bounds_AFOLU = calibration.df_calib_bounds["AFOLU"].query("sector == 'AFOLU'").reset_index(drop = True)
+        calib_bounds_AFOLU = calibration.df_calib_bounds.query("sector == 'AFOLU'").reset_index(drop = True)
 
         agrupa = calib_bounds_AFOLU.query("group!=999").groupby("group")
         group_list = calib_bounds_AFOLU.query("group!=999")["group"].unique()
