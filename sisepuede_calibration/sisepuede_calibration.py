@@ -120,22 +120,6 @@ class RunModel:
         self.all_time_period_input_data = all_time_period_input_data
 
 
-    """
-    ---------------------------------
-    update_model method
-    ---------------------------------
-
-    Description: The method receive the subsector model to set the calibration targets
-
-    # Inputs:
-             * subsector_model              - Subsector model name
-             * calib_targets_model          - Calibration targets
-    """
-
-    def update_model(self,subsector_model):
-        self.subsector_model = subsector_model
-        self.calib_targets[subsector_model] = df_calib_bounds.query(f"sector =='{subsector_model}'")["calib_targets"].reset_index(drop = True)
-
 
     # +++++++++++++++++++++++++++++++++++++++
     # Set decorators for build data by sector
@@ -333,15 +317,33 @@ class CalibrationModel(RunModel):
     def __init__(self, year_init, year_end, df_input_var, country, subsector_model, calib_targets, df_calib_bounds, all_time_period_input_data,
                  df_co2_emissions, co2_emissions_by_sector = {}, precition = 6, run_integrated_q = False):
         super(CalibrationModel, self).__init__(year_init, year_end, df_input_var, country, subsector_model, calib_targets,df_calib_bounds, all_time_period_input_data)
-        self.df_co2_emissions = df_co2_emissions
+        self.all_sectors_co2_emissions = df_co2_emissions
         self.var_co2_emissions_by_sector = co2_emissions_by_sector
         self.fitness_values = {}
         self.item_val_afolu_total_item_fao = None
         self.precition = precition
         self.run_integrated_q = run_integrated_q
+        self.update_model(subsector_model)
 
     def get_calib_var_group(self,grupo): 
         return self.df_calib_bounds.query("group =={}".format(grupo))["variable"].to_list()
+
+    """
+    ---------------------------------
+    update_model method
+    ---------------------------------
+
+    Description: The method receive the subsector model to set the calibration targets
+
+    # Inputs:
+             * subsector_model              - Subsector model name
+             * calib_targets_model          - Calibration targets
+    """
+
+    def update_model(self,subsector_model):
+        self.subsector_model = subsector_model
+        self.calib_targets[subsector_model] = df_calib_bounds.query(f"sector =='{subsector_model}'")["calib_targets"].reset_index(drop = True).copy()
+        self.df_co2_emissions = self.all_sectors_co2_emissions[subsector_model].query(f"model == '{subsector_model}' and iso_code3=='{self.country}' and (Year >= {self.year_init+2014} and Year <= {self.year_end+2014} )").reset_index(drop = True).copy()
 
     # +++++++++++++++++++++++++++++++++++++++++++++++++
     # Set decorators for performance metrics by sector
