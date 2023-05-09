@@ -115,7 +115,7 @@ class RunModel:
         self.subsector_model = subsector_model
         self.df_calib_bounds = df_calib_bounds
         self.calib_targets = {}
-        self.calib_targets[subsector_model] = df_calib_bounds.query(f"sector =='{subsector_model}'")["calib_targets"].reset_index(drop = True)
+        self.calib_targets[subsector_model] = df_calib_bounds.query(f"sector =='{subsector_model}'")["variable"].reset_index(drop = True)
         self.best_vector = {}
         self.all_time_period_input_data = all_time_period_input_data
 
