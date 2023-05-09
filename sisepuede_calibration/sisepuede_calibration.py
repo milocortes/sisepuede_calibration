@@ -323,7 +323,7 @@ class CalibrationModel(RunModel):
         self.item_val_afolu_total_item_fao = None
         self.precition = precition
         self.run_integrated_q = run_integrated_q
-        self.update_model(subsector_model)
+        self.update_model(subsector_model, df_input_var, all_time_period_input_data)
 
     def get_calib_var_group(self,grupo): 
         return self.df_calib_bounds.query("group =={}".format(grupo))["variable"].to_list()
