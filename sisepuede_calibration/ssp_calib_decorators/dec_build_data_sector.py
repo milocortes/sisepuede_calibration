@@ -56,7 +56,14 @@ def data_AFOLU(func):
             #df_input_data[index_var_group] = df_input_data[index_var_group].apply(lambda x: round(x, calibration.precition))
 
         mixer = MixedLNDUTransitionFromBounds(eps = 0.0001)# eps is a correction threshold for transition matrices
-        prop_pij = mixer.mix_transitions(params[-1],calibration.country)
+
+        # Correspondence iso code 3 - SISEPUEDE
+        iso3_codes_lac = ["ARG", "BHS", "BRB", "BLZ", "BOL", "BRA", "CHL", "COL", "CRI", "DOM", "ECU", "SLV", "GTM", "GUY", "HTI", "HND", "JAM", "MEX", "NIC", "PAN", "PRY", "PER", "SUR", "TTO", "URY", "VEN"]
+        country_names_lac = ['argentina', 'bahamas', 'barbados', 'belize', 'bolivia', 'brazil', 'chile', 'colombia', 'costa_rica', 'dominican_republic', 'ecuador', 'el_salvador', 'guatemala', 'guyana', 'haiti', 'honduras', 'jamaica', 'mexico', 'nicaragua', 'panama', 'paraguay', 'peru', 'suriname', 'trinidad_and_tobago', 'uruguay', 'venezuela']
+
+        correspondece_iso_names = {x:y for x,y in zip(iso3_codes_lac, country_names_lac)}
+
+        prop_pij = mixer.mix_transitions(params[-1],correspondece_iso_names[calibration.country])
 
         # SELECCIONAMOS LOS VALORES DE 2010 A 2015. Esto va a cambiar eventualmente. 
         # PARCHE PROVISIONAL
@@ -90,7 +97,14 @@ def data_matrix_pij_AFOLU(func):
         # Calibrate pij
 
         mixer = MixedLNDUTransitionFromBounds(eps = 0.0001)# eps is a correction threshold for transition matrices
-        prop_pij = mixer.mix_transitions(params[-1],calibration.country)
+        
+        # Correspondence iso code 3 - SISEPUEDE
+        iso3_codes_lac = ["ARG", "BHS", "BRB", "BLZ", "BOL", "BRA", "CHL", "COL", "CRI", "DOM", "ECU", "SLV", "GTM", "GUY", "HTI", "HND", "JAM", "MEX", "NIC", "PAN", "PRY", "PER", "SUR", "TTO", "URY", "VEN"]
+        country_names_lac = ['argentina', 'bahamas', 'barbados', 'belize', 'bolivia', 'brazil', 'chile', 'colombia', 'costa_rica', 'dominican_republic', 'ecuador', 'el_salvador', 'guatemala', 'guyana', 'haiti', 'honduras', 'jamaica', 'mexico', 'nicaragua', 'panama', 'paraguay', 'peru', 'suriname', 'trinidad_and_tobago', 'uruguay', 'venezuela']
+
+        correspondece_iso_names = {x:y for x,y in zip(iso3_codes_lac, country_names_lac)}
+
+        prop_pij = mixer.mix_transitions(params[-1],correspondece_iso_names[calibration.country])
 
         # SELECCIONAMOS LOS VALORES DE 2010 A 2015. Esto va a cambiar eventualmente. 
         # PARCHE PROVISIONAL
