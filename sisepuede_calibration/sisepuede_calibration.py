@@ -316,7 +316,7 @@ class CalibrationModel(RunModel):
 
     def __init__(self, year_init, year_end, df_input_var, country, subsector_model, calib_targets, df_calib_bounds, all_time_period_input_data,
                  df_co2_emissions, co2_emissions_by_sector = {}, precition = 6, run_integrated_q = False):
-        super(CalibrationModel, self).__init__(year_init, year_end, df_input_var, country, subsector_model, calib_targets,df_calib_bounds, all_time_period_input_data)
+        super(CalibrationModel, self).__init__(year_init, year_end, df_input_var, country, subsector_model, df_calib_bounds, all_time_period_input_data)
         self.all_sectors_co2_emissions = df_co2_emissions
         self.var_co2_emissions_by_sector = co2_emissions_by_sector
         self.fitness_values = {}
