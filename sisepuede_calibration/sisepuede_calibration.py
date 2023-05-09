@@ -340,10 +340,12 @@ class CalibrationModel(RunModel):
              * calib_targets_model          - Calibration targets
     """
 
-    def update_model(self,subsector_model):
+    def update_model(self,subsector_model, df_input_var, all_time_period_input_data):
         self.subsector_model = subsector_model
         self.calib_targets[subsector_model] = self.df_calib_bounds.query(f"sector =='{subsector_model}'")["variable"].reset_index(drop = True).copy()
         self.df_co2_emissions = self.all_sectors_co2_emissions[subsector_model].query(f"model == '{subsector_model}' and iso_code3=='{self.country}' and (Year >= {self.year_init+2014} and Year <= {self.year_end+2014} )").reset_index(drop = True).copy()
+        self.df_input_var = df_input_var
+        self.all_time_period_input_data = all_time_period_input_data
 
     # +++++++++++++++++++++++++++++++++++++++++++++++++
     # Set decorators for performance metrics by sector
