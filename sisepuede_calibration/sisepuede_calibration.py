@@ -342,7 +342,7 @@ class CalibrationModel(RunModel):
 
     def update_model(self,subsector_model):
         self.subsector_model = subsector_model
-        self.calib_targets[subsector_model] = df_calib_bounds.query(f"sector =='{subsector_model}'")["calib_targets"].reset_index(drop = True).copy()
+        self.calib_targets[subsector_model] = self.df_calib_bounds.query(f"sector =='{subsector_model}'")["variable"].reset_index(drop = True).copy()
         self.df_co2_emissions = self.all_sectors_co2_emissions[subsector_model].query(f"model == '{subsector_model}' and iso_code3=='{self.country}' and (Year >= {self.year_init+2014} and Year <= {self.year_end+2014} )").reset_index(drop = True).copy()
 
     # +++++++++++++++++++++++++++++++++++++++++++++++++
