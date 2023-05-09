@@ -107,7 +107,7 @@ class RunModel:
 
     '''
 
-    def __init__(self, year_init, year_end, df_input_var, country, subsector_model, calib_targets, df_calib_bounds, all_time_period_input_data = None):
+    def __init__(self, year_init, year_end, df_input_var, country, subsector_model, df_calib_bounds, all_time_period_input_data = None):
         self.year_init = year_init 
         self.year_end = year_end
         self.df_input_var = df_input_var
