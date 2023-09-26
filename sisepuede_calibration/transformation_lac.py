@@ -14,7 +14,6 @@ sys.path.append(os.path.join(cwd, 'python'))
 
 import setup_analysis as sa
 import support_functions as sf
-import sector_models as sm
 import argparse
 
 from model_socioeconomic import Socioeconomic
