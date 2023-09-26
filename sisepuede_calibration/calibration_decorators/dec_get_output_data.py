@@ -13,13 +13,14 @@ sys.path.append(os.path.join(cwd, 'python'))
 
 import setup_analysis as sa
 import support_functions as sf
-import sector_models as sm
 import argparse
 
-from model_socioeconomic import Socioeconomic
 from model_afolu import AFOLU
 from model_circular_economy import CircularEconomy
+from model_electricity import ElectricEnergy
+from model_energy import NonElectricEnergy
 from model_ippu import IPPU
+from model_socioeconomic import Socioeconomic
 
 """
 ***********************************************************
@@ -83,7 +84,7 @@ def get_output_data_CircularEconomy(func):
             if print_sector_model:
                 print("RUN CircularEconomy SECTOR")
 
-            model_circecon = sm.CircularEconomy(sa.model_attributes)
+            model_circecon = CircularEconomy(sa.model_attributes)
 
             df_input_data = sa.model_attributes.transfer_df_variables(
                 df_input_data,
@@ -140,7 +141,7 @@ def get_output_data_IPPU(func):
             if print_sector_model:
                 print("RUN CircularEconomy SECTOR")
             
-            model_circecon = sm.CircularEconomy(sa.model_attributes)
+            model_circecon = CircularEconomy(sa.model_attributes)
 
             df_input_data = sa.model_attributes.transfer_df_variables(
                 df_input_data,
@@ -159,7 +160,7 @@ def get_output_data_IPPU(func):
             if print_sector_model:
                 print("RUN IPPU SECTOR")
             
-            model_ippu = sm.IPPU(sa.model_attributes)
+            model_ippu = IPPU(sa.model_attributes)
 
             df_input_data = sa.model_attributes.transfer_df_variables(
                 df_input_data,
@@ -214,7 +215,7 @@ def get_output_data_NonElectricEnergy(func):
         if print_sector_model:
             print("RUN CircularEconomy SECTOR")
         
-        model_circecon = sm.CircularEconomy(sa.model_attributes)
+        model_circecon = CircularEconomy(sa.model_attributes)
 
         df_input_data = sa.model_attributes.transfer_df_variables(
             df_input_data,
@@ -233,7 +234,7 @@ def get_output_data_NonElectricEnergy(func):
         if print_sector_model:
             print("RUN IPPU SECTOR")
         
-        model_ippu = sm.IPPU(sa.model_attributes)
+        model_ippu = IPPU(sa.model_attributes)
 
         df_input_data = sa.model_attributes.transfer_df_variables(
             df_input_data,
@@ -251,7 +252,7 @@ def get_output_data_NonElectricEnergy(func):
         if print_sector_model:
             print("RUN NonElectricEnergy SECTOR") 
         
-        model_energy = sm.NonElectricEnergy(sa.model_attributes)
+        model_energy = NonElectricEnergy(sa.model_attributes)
 
         df_input_data = sa.model_attributes.transfer_df_variables(
             df_input_data,
@@ -292,7 +293,7 @@ def get_output_data_ElectricEnergy(func):
         if print_sector_model:
             print("RUN CircularEconomy SECTOR")
         
-        model_circecon = sm.CircularEconomy(sa.model_attributes)
+        model_circecon = CircularEconomy(sa.model_attributes)
 
         df_input_data = sa.model_attributes.transfer_df_variables(
             df_input_data,
@@ -311,7 +312,7 @@ def get_output_data_ElectricEnergy(func):
         if print_sector_model:
             print("RUN IPPU SECTOR")
         
-        model_ippu = sm.IPPU(sa.model_attributes)
+        model_ippu = IPPU(sa.model_attributes)
 
         df_input_data = sa.model_attributes.transfer_df_variables(
             df_input_data,
@@ -329,7 +330,7 @@ def get_output_data_ElectricEnergy(func):
         if print_sector_model:
             print("RUN NonElectricEnergy SECTOR") 
         
-        model_energy = sm.NonElectricEnergy(sa.model_attributes)
+        model_energy = NonElectricEnergy(sa.model_attributes)
 
         df_input_data = sa.model_attributes.transfer_df_variables(
             df_input_data,
@@ -344,7 +345,7 @@ def get_output_data_ElectricEnergy(func):
         if print_sector_model:
             print("RUN ElectricEnergy SECTOR") 
 
-        model_elecricity = sm.ElectricEnergy(sa.model_attributes, 
+        model_elecricity = ElectricEnergy(sa.model_attributes, 
                                             sa.dir_jl, 
                                             sa.dir_ref_nemo)
 
@@ -393,7 +394,7 @@ def get_output_data_AllEnergy(func):
         if print_sector_model:
             print("RUN CircularEconomy SECTOR")
         
-        model_circecon = sm.CircularEconomy(sa.model_attributes)
+        model_circecon = CircularEconomy(sa.model_attributes)
 
         df_input_data = sa.model_attributes.transfer_df_variables(
             df_input_data,
@@ -412,7 +413,7 @@ def get_output_data_AllEnergy(func):
         if print_sector_model:
             print("RUN IPPU SECTOR")
         
-        model_ippu = sm.IPPU(sa.model_attributes)
+        model_ippu = IPPU(sa.model_attributes)
 
         df_input_data = sa.model_attributes.transfer_df_variables(
             df_input_data,
@@ -430,7 +431,7 @@ def get_output_data_AllEnergy(func):
         if print_sector_model:
             print("RUN NonElectricEnergy SECTOR") 
         
-        model_energy = sm.NonElectricEnergy(sa.model_attributes)
+        model_energy = NonElectricEnergy(sa.model_attributes)
 
         df_input_data = sa.model_attributes.transfer_df_variables(
             df_input_data,
@@ -447,7 +448,7 @@ def get_output_data_AllEnergy(func):
         if print_sector_model:
             print("RUN ElectricEnergy SECTOR") 
 
-        model_elecricity = sm.ElectricEnergy(sa.model_attributes, 
+        model_elecricity = ElectricEnergy(sa.model_attributes, 
                                             sa.dir_jl, 
                                             sa.dir_ref_nemo)
 
@@ -469,7 +470,7 @@ def get_output_data_AllEnergy(func):
         if print_sector_model:
             print("RUN Energy SECTOR with fugitive emissions from Non-Electric Energy") 
 
-        model_energy = sm.NonElectricEnergy(sa.model_attributes)
+        model_energy = NonElectricEnergy(sa.model_attributes)
 
         df_input_data = sa.model_attributes.transfer_df_variables(
             df_input_data,

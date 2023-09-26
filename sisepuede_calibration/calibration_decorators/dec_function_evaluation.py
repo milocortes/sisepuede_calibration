@@ -12,13 +12,14 @@ sys.path.append(os.path.join(cwd, 'python'))
 
 import setup_analysis as sa
 import support_functions as sf
-import sector_models as sm
 import argparse
 
-from model_socioeconomic import Socioeconomic
 from model_afolu import AFOLU
 from model_circular_economy import CircularEconomy
+from model_electricity import ElectricEnergy
+from model_energy import NonElectricEnergy
 from model_ippu import IPPU
+from model_socioeconomic import Socioeconomic
 
 """
 ***********************************************************
