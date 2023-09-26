@@ -16,14 +16,14 @@ sys.path.append(os.path.join(cwd, 'python'))
 
 import setup_analysis as sa
 import support_functions as sf
-import sector_models as sm
 import argparse
 
 from model_socioeconomic import Socioeconomic
 from model_afolu import AFOLU
 from model_circular_economy import CircularEconomy
 from model_ippu import IPPU
-
+from model_energy import NonElectricEnergy
+from model_electricity import ElectricEnergy
 """
 ***********************************************************
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -133,7 +133,7 @@ def get_output_data_NonElectricEnergy(func):
         df_input_data = calibration.build_data_NonElectricEnergy(df_input_data, params)
         
         try:
-            model_energy = sm.NonElectricEnergy(sa.model_attributes)                   
+            model_energy = NonElectricEnergy(sa.model_attributes)                   
             df_model_data_project = model_energy.project(df_input_data)
         except:
             print("LOG ERROR HERE: CANNOT RUN WITHOUT IPPU")
@@ -161,7 +161,7 @@ def get_output_data_ElectricEnergy(func):
         df_input_data = calibration.build_data_ElectricEnergy(df_input_data, params)
         
         try:
-            model_elecricity = sm.ElectricEnergy(sa.model_attributes, 
+            model_elecricity = ElectricEnergy(sa.model_attributes, 
                             sa.dir_jl, 
                             sa.dir_ref_nemo)
 
@@ -199,7 +199,7 @@ def get_output_data_Fugitive(func):
         df_input_data = calibration.build_data_Fugitive(df_input_data, params)
         
         try:
-            model_energy = sm.NonElectricEnergy(sa.model_attributes)
+            model_energy = NonElectricEnergy(sa.model_attributes)
             df_model_data_project = model_energy.project(df_input_data, subsectors_project = sa.model_attributes.subsec_name_fgtv)
         except:        
             print("LOG ERROR HERE: CANNOT RUN WITHOUT IPPU AND AFOLU")
