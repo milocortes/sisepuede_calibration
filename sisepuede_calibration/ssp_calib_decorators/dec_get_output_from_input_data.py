@@ -16,7 +16,6 @@ sys.path.append(os.path.join(cwd, 'python'))
 
 import setup_analysis as sa
 import support_functions as sf
-import sector_models as sm
 import argparse
 
 from model_socioeconomic import Socioeconomic
@@ -64,7 +63,7 @@ def get_output_input_data_CircularEconomy_dec(func):
     @functools.wraps(func)
     def wrapper_decorator(df_input_data):
 
-        model_circecon = sm.CircularEconomy(sa.model_attributes)
+        model_circecon = CircularEconomy(sa.model_attributes)
         df_output_data = model_circecon.project(df_input_data)
 
         return df_output_data
@@ -78,7 +77,7 @@ def get_output_input_data_IPPU_dec(func):
     @functools.wraps(func)
     def wrapper_decorator(df_input_data):
 
-        model_ippu = sm.IPPU(sa.model_attributes)
+        model_ippu = IPPU(sa.model_attributes)
         df_output_data = model_ippu.project(df_input_data)
 
         return df_output_data
@@ -93,7 +92,7 @@ def get_output_input_data_NonElectricEnergy_dec(func):
     @functools.wraps(func)
     def wrapper_decorator(df_input_data):
         try:
-            model_energy = sm.NonElectricEnergy(sa.model_attributes)                   
+            model_energy = NonElectricEnergy(sa.model_attributes)                   
             df_output_data = model_energy.project(df_input_data)
         except:
             print("LOG ERROR HERE: CANNOT RUN WITHOUT IPPU")
@@ -113,7 +112,7 @@ def get_output_input_data_ElectricEnergy_dec(func):
     def wrapper_decorator(df_input_data):
 
         try:
-            model_elecricity = sm.ElectricEnergy(sa.model_attributes, 
+            model_elecricity = ElectricEnergy(sa.model_attributes, 
                             sa.dir_jl, 
                             sa.dir_ref_nemo)
 
@@ -143,7 +142,7 @@ def get_output_input_data_Fugitive_dec(func):
     def wrapper_decorator(df_input_data):
 
         try:
-            model_energy = sm.NonElectricEnergy(sa.model_attributes)
+            model_energy = NonElectricEnergy(sa.model_attributes)
             df_output_data = model_energy.project(df_input_data, subsectors_project = sa.model_attributes.subsec_name_fgtv)
         except:        
             print("LOG ERROR HERE: CANNOT RUN WITHOUT IPPU AND AFOLU")
